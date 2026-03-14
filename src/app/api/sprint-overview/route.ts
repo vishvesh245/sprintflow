@@ -59,7 +59,6 @@ export async function GET() {
               team: { select: { id: true, name: true, prefix: true, color: true } },
               assignee: { select: { id: true, name: true, email: true, image: true } },
               sprint: { select: { id: true, name: true, status: true } },
-              epic: { select: { id: true, title: true } },
             },
             orderBy: { createdAt: "desc" },
           })

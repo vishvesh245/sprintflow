@@ -80,7 +80,6 @@ export async function POST(
         team: true,
         assignee: true,
         sprint: true,
-        epic: true,
       },
     })
 

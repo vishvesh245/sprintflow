@@ -35,11 +35,6 @@ const baseNavigationItems = [
     icon: List,
   },
   {
-    name: 'Epics',
-    href: '/epics',
-    icon: Layers,
-  },
-  {
     name: 'Design Board',
     href: '/design-board',
     icon: Palette,

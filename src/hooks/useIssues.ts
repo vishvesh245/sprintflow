@@ -4,7 +4,6 @@ import { IssueWithRelations } from '@/types'
 interface UseIssuesParams {
   teamId?: string
   sprintId?: string
-  epicId?: string
   status?: string
   backlog?: boolean
   /** When false the query is paused (will not fire). Defaults to true. */
@@ -23,7 +22,6 @@ export function useIssues(params: UseIssuesParams): UseIssuesReturn {
 
   if (params.teamId) queryParams.append('teamId', params.teamId)
   if (params.sprintId) queryParams.append('sprintId', params.sprintId)
-  if (params.epicId) queryParams.append('epicId', params.epicId)
   if (params.status) queryParams.append('status', params.status)
   if (params.backlog !== undefined) queryParams.append('backlog', String(params.backlog))
 

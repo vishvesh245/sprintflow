@@ -16,7 +16,6 @@ const issueDetailInclude = {
   assignee: { select: { id: true, name: true, email: true, image: true } },
   reporter: { select: { id: true, name: true, email: true, image: true } },
   sprint: { select: { id: true, name: true, status: true } },
-  epic: { select: { id: true, title: true } },
   comments: {
     include: {
       author: { select: { id: true, name: true, email: true, image: true } },
@@ -275,18 +274,6 @@ export async function DELETE(
       where: { id: issue.id },
       data: { deletedAt: now },
     })
-
-    // Remove from epic if assigned
-    if (issue.epicId) {
-      await prisma.epic.update({
-        where: { id: issue.epicId },
-        data: {
-          issues: {
-            disconnect: { id: issue.id },
-          },
-        },
-      })
-    }
 
     // Invalidate server-side caches
     invalidatePrefix(`issue:${issue.id}`)

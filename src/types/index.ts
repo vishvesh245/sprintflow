@@ -2,12 +2,11 @@ import { Prisma } from '@prisma/client'
 import { Session } from 'next-auth'
 
 // Re-export Prisma types
-export type { User, Team, Sprint, Issue, Epic, Notification } from '@prisma/client'
+export type { User, Team, Sprint, Issue, Notification } from '@prisma/client'
 
 // Issue includes with relations
 export const issueWithRelationsInclude = {
   assignee: true,
-  epic: true,
   sprint: true,
   team: true,
   parentIssue: true,
@@ -29,18 +28,6 @@ export const sprintWithIssuesInclude = {
 
 export type SprintWithIssues = Prisma.SprintGetPayload<{
   include: typeof sprintWithIssuesInclude
-}>
-
-// Epic with issues
-export const epicWithIssuesInclude = {
-  issues: {
-    include: issueWithRelationsInclude,
-  },
-  team: true,
-} as const
-
-export type EpicWithIssues = Prisma.EpicGetPayload<{
-  include: typeof epicWithIssuesInclude
 }>
 
 // Issue status enum for UI

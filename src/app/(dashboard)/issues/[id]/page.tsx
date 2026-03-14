@@ -9,7 +9,6 @@ import { invalidateIssueCaches } from '@/lib/invalidateRelatedCaches'
 import { useIssue } from '@/hooks/useIssue'
 import { useTeams } from '@/hooks/useTeams'
 import { useUsers } from '@/hooks/useUsers'
-import { useEpics } from '@/hooks/useEpics'
 import { useSprints } from '@/hooks/useSprints'
 import { IssueDetail } from '@/components/issues/IssueDetail'
 import { CommentThread } from '@/components/issues/CommentThread'
@@ -33,7 +32,6 @@ export default function IssueDetailPage() {
   // Reference data — long staleTime (5 min), likely already cached from other pages
   const { teams } = useTeams()
   const { users } = useUsers()
-  const { epics } = useEpics()
   const { sprints: allSprints } = useSprints()
 
   // Filter completed sprints from dropdown — but keep the issue's current sprint
@@ -212,7 +210,6 @@ export default function IssueDetailPage() {
           issue={issue}
           teams={teams}
           sprints={sprints}
-          epics={epics}
           users={users}
           onUpdate={handleUpdate}
           onAddSubtask={(title) => addSubtask(title)}

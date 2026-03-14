@@ -20,7 +20,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const teamId = searchParams.get("teamId")
     const sprintId = searchParams.get("sprintId")
-    const epicId = searchParams.get("epicId")
     const status = searchParams.get("status")
     const assigneeId = searchParams.get("assigneeId")
     const priority = searchParams.get("priority")
@@ -41,7 +40,6 @@ export async function GET(request: Request) {
         { sprint: { status: "PLANNING" } },
       ]
     }
-    if (epicId) where.epicId = epicId
     if (status) where.status = status
     if (assigneeId) where.assigneeId = assigneeId
     if (priority) where.priority = priority
@@ -63,7 +61,6 @@ export async function GET(request: Request) {
           team: { select: { id: true, name: true, prefix: true, color: true } },
           assignee: { select: { id: true, name: true, email: true, image: true } },
           sprint: { select: { id: true, name: true, status: true } },
-          epic: { select: { id: true, title: true } },
         },
         orderBy: { createdAt: "desc" },
       })
@@ -94,7 +91,6 @@ export async function POST(request: Request) {
       priority,
       teamId,
       sprintId,
-      epicId,
       assigneeId,
       labels,
       storyPoints,
@@ -136,7 +132,6 @@ export async function POST(request: Request) {
         priority,
         teamId,
         sprintId,
-        epicId,
         assigneeId,
         reporterId: session.user.id,
         labels: labels || [],
@@ -148,7 +143,6 @@ export async function POST(request: Request) {
         team: true,
         assignee: true,
         sprint: true,
-        epic: true,
       },
     })
 

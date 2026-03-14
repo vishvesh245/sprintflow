@@ -7,7 +7,6 @@ export const createIssueSchema = z.object({
   priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']),
   teamId: z.string(),
   sprintId: z.string().optional(),
-  epicId: z.string().optional(),
   assigneeId: z.string().optional(),
   labels: z.array(z.string()).optional(),
   storyPoints: z.number().int().min(0).optional(),
@@ -23,7 +22,6 @@ export const updateIssueSchema = createIssueSchema.partial().extend({
   description: z.string().nullable().optional(),
   assigneeId: z.string().nullable().optional(),
   sprintId: z.string().nullable().optional(),
-  epicId: z.string().nullable().optional(),
   storyPoints: z.number().int().min(0).nullable().optional(),
 })
 

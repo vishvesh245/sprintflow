@@ -14,8 +14,6 @@ import { toast } from 'sonner'
 
 export default function SprintPage() {
   const queryClient = useQueryClient()
-  const [selectedEpic, setSelectedEpic] = useState<string | 'all'>('all')
-
   // Create sprint form state
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [formData, setFormData] = useState({ name: '', startDate: '', endDate: '' })
@@ -132,18 +130,6 @@ export default function SprintPage() {
     setShowCompleteModal(false)
     await invalidateAll()
   }
-
-  // Filter issues by epic
-  const filteredIssues = selectedEpic === 'all'
-    ? issues
-    : issues.filter(issue => issue.epicId === selectedEpic)
-
-  // Get unique epics from current issues
-  const epics = Array.from(
-    new Map(
-      issues.filter(i => i.epic).map(i => [i.epicId, i.epic])
-    ).values()
-  )
 
   // ── Loading state ─────────────────────────────────────────────
   // Wait for active sprints query to resolve before rendering anything,
@@ -330,25 +316,6 @@ export default function SprintPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* Epic Filter */}
-              {epics.length > 0 && (
-                <select
-                  value={selectedEpic}
-                  onChange={(e) => setSelectedEpic(e.target.value)}
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                    backgroundSize: '16px',
-                    backgroundPosition: 'right 8px center',
-                    backgroundRepeat: 'no-repeat',
-                  }}
-                  className="rounded-lg border border-gray-200 bg-white pl-3 pr-8 py-1.5 text-sm text-gray-600 focus:border-blue-400 focus:outline-none appearance-none"
-                >
-                  <option value="all">All Epics</option>
-                  {epics.map(epic => (
-                    <option key={epic?.id} value={epic?.id}>{epic?.title}</option>
-                  ))}
-                </select>
-              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -446,7 +413,7 @@ export default function SprintPage() {
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
-        <UnifiedSprintView sprint={sprint!} issues={filteredIssues} />
+        <UnifiedSprintView sprint={sprint!} issues={issues} />
       </div>
 
       {/* Sprint History — upcoming + completed sprints */}

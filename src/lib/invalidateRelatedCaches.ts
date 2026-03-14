@@ -5,13 +5,12 @@ import { QueryClient } from '@tanstack/react-query'
  *
  * Call this from ANY code path that changes issue data (status, sprint,
  * assignee, creation, deletion, etc.) so that every view — board, backlog,
- * sprint overview, epics — stays in sync.
+ * sprint overview — stays in sync.
  */
 export function invalidateIssueCaches(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: ['issues'] })
   queryClient.invalidateQueries({ queryKey: ['board'] })
   queryClient.invalidateQueries({ queryKey: ['sprint-overview'] })
-  queryClient.invalidateQueries({ queryKey: ['epics'] })
 }
 
 /**

@@ -9,7 +9,6 @@ import { useIssueSlideOver } from '@/contexts/IssueSlideOverContext'
 import { useIssue } from '@/hooks/useIssue'
 import { useTeams } from '@/hooks/useTeams'
 import { useUsers } from '@/hooks/useUsers'
-import { useEpics } from '@/hooks/useEpics'
 import { useSprints } from '@/hooks/useSprints'
 import { IssueDetail } from './IssueDetail'
 import { CommentThread } from './CommentThread'
@@ -205,7 +204,6 @@ function SlideOverContent({
   const { issue, isLoading: issueLoading, error: issueError } = useIssue(issueId)
   const { teams } = useTeams()
   const { users } = useUsers()
-  const { epics } = useEpics()
   const { sprints: allSprints } = useSprints()
 
   const sprints = allSprints.filter(
@@ -403,7 +401,6 @@ function SlideOverContent({
                 issue={issue}
                 teams={teams}
                 sprints={sprints}
-                epics={epics}
                 users={users}
                 onUpdate={handleUpdate}
                 onAddSubtask={(title) => addSubtask(title)}

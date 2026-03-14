@@ -9,14 +9,12 @@ import { NotificationBell } from './NotificationBell'
 import { IssueForm } from '@/components/issues/IssueForm'
 import { useTeams } from '@/hooks/useTeams'
 import { useUsers } from '@/hooks/useUsers'
-import { useEpics } from '@/hooks/useEpics'
 import { useSprints } from '@/hooks/useSprints'
 
 const pageNames: Record<string, string> = {
   '/sprint': 'Sprint Overview',
   '/board': 'Board',
   '/backlog': 'Backlog',
-  '/epics': 'Epics',
   '/design-board': 'Design Board',
   '/settings': 'Settings',
   '/profile': 'Profile',
@@ -72,7 +70,6 @@ export function TopNav() {
   const shouldFetch = refDataReady || showCreateIssue
   const { teams } = useTeams({ enabled: shouldFetch })
   const { users } = useUsers({ enabled: shouldFetch })
-  const { epics } = useEpics({ enabled: shouldFetch })
   const { sprints: allSprints } = useSprints(undefined, { summary: true, enabled: shouldFetch })
   // Only show active/planning sprints in the create-issue dropdown
   const sprints = allSprints.filter(s => s.status !== 'COMPLETED')
@@ -94,7 +91,6 @@ export function TopNav() {
     priority: string
     teamId: string
     sprintId: string
-    epicId: string
     assigneeId: string
     storyPoints: number
     parentIssueId?: string
@@ -109,7 +105,6 @@ export function TopNav() {
         priority: formData.priority,
         teamId: formData.teamId,
         sprintId: formData.sprintId || undefined,
-        epicId: formData.epicId || undefined,
         assigneeId: formData.assigneeId || undefined,
         storyPoints: formData.storyPoints > 0 ? formData.storyPoints : undefined,
         // SUBTASK: link to parent via parentIssueId
@@ -276,7 +271,6 @@ export function TopNav() {
               <IssueForm
                 teams={teams}
                 sprints={sprints}
-                epics={epics}
                 users={users}
                 onSubmit={handleCreateIssue}
                 onCancel={handleCloseCreate}

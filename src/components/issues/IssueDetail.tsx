@@ -28,16 +28,10 @@ interface Sprint {
   status: string
 }
 
-interface Epic {
-  id: string
-  title: string
-}
-
 interface IssueDetailProps {
   issue: any
   teams: Team[]
   sprints: Sprint[]
-  epics: Epic[]
   users: Assignee[]
   onUpdate: (updates: Record<string, any>) => Promise<void>
   onAddSubtask?: (title: string) => Promise<void>
@@ -69,7 +63,6 @@ export function IssueDetail({
   issue,
   teams,
   sprints,
-  epics,
   users,
   onUpdate,
   onAddSubtask,
@@ -98,7 +91,6 @@ export function IssueDetail({
   const [editType, setEditType] = useState('')
   const [editAssigneeId, setEditAssigneeId] = useState('')
   const [editSprintId, setEditSprintId] = useState('')
-  const [editEpicId, setEditEpicId] = useState('')
   const [editStoryPoints, setEditStoryPoints] = useState<number>(0)
 
   const handleEnterEdit = () => {
@@ -109,7 +101,6 @@ export function IssueDetail({
     setEditType(issue.type || 'TASK')
     setEditAssigneeId(issue.assigneeId || '')
     setEditSprintId(issue.sprintId || '')
-    setEditEpicId(issue.epicId || '')
     setEditStoryPoints(issue.storyPoints || 0)
     setSaveError(null)
     setEditMode(true)
@@ -133,7 +124,6 @@ export function IssueDetail({
         type: editType,
         assigneeId: editAssigneeId || null,
         sprintId: editSprintId || null,
-        epicId: editEpicId || null,
         storyPoints: editStoryPoints >= 0 ? editStoryPoints : null,
       })
       setEditMode(false)
@@ -461,35 +451,6 @@ export function IssueDetail({
                   issue.sprint.name
                 ) : (
                   <span className="text-gray-400">No sprint</span>
-                )}
-              </span>
-            )}
-          </div>
-
-          {/* Epic */}
-          <div className="px-5 py-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Epic
-            </p>
-            {editMode ? (
-              <select
-                value={editEpicId}
-                onChange={(e) => setEditEpicId(e.target.value)}
-                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">No epic</option>
-                {epics.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.title}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span className="text-sm text-gray-800">
-                {issue.epic?.title ? (
-                  issue.epic.title
-                ) : (
-                  <span className="text-gray-400">No epic</span>
                 )}
               </span>
             )}
