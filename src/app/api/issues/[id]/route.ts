@@ -7,6 +7,7 @@ import { cached, invalidatePrefix } from "@/lib/cache"
 import { updateIssueSchema } from "@/lib/validations/issue"
 import { createNotification } from "@/lib/utils/notifications"
 import { z } from "zod"
+import type { IssueStatus } from "@prisma/client"
 
 // Shared include for issue detail — uses select to pull only the fields
 // the UI needs, keeping the Prisma query and JSON payload lean.
@@ -162,7 +163,7 @@ export async function PATCH(
       // ── Cascade sprintId to subtasks ──────────────────────────────────────
       // When a parent issue moves to a sprint (or back to backlog), its subtasks follow.
       if ('sprintId' in updateData) {
-        const subtaskUpdate: { sprintId: string | null; status?: string } = {
+        const subtaskUpdate: { sprintId: string | null; status?: IssueStatus } = {
           sprintId: updateData.sprintId ?? null,
         }
         if (patchData.status === 'TODO') {
