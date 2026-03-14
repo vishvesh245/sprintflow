@@ -13,11 +13,6 @@ interface Sprint {
   name: string
 }
 
-interface Epic {
-  id: string
-  title: string
-}
-
 interface User {
   id: string
   name: string | null
@@ -38,7 +33,6 @@ export interface IssueFormData {
   priority: string
   teamId: string
   sprintId: string
-  epicId: string
   assigneeId: string
   storyPoints: number
   /** Set for SUBTASK — the parent issue's UUID */
@@ -50,7 +44,6 @@ export interface IssueFormData {
 interface IssueFormProps {
   teams: Team[]
   sprints: Sprint[]
-  epics: Epic[]
   users: User[]
   onSubmit: (data: IssueFormData) => Promise<void>
   onCancel: () => void
@@ -61,7 +54,6 @@ interface IssueFormProps {
 export function IssueForm({
   teams,
   sprints,
-  epics,
   users,
   onSubmit,
   onCancel,
@@ -77,7 +69,6 @@ export function IssueForm({
           priority: initialData.priority || 'MEDIUM',
           teamId: initialData.teamId || '',
           sprintId: initialData.sprintId || '',
-          epicId: initialData.epicId || '',
           assigneeId: initialData.assigneeId || '',
           storyPoints: initialData.storyPoints || 0,
           parentIssueId: initialData.parentIssueId || '',
@@ -90,7 +81,6 @@ export function IssueForm({
           priority: 'MEDIUM',
           teamId: '',
           sprintId: '',
-          epicId: '',
           assigneeId: '',
           storyPoints: 0,
           parentIssueId: '',
@@ -314,39 +304,21 @@ export function IssueForm({
         </div>
       </div>
 
-      {/* Epic and Assignee */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Epic</label>
-          <select
-            value={formData.epicId}
-            onChange={(e) => setFormData({ ...formData, epicId: e.target.value })}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">No epic</option>
-            {epics.map((epic) => (
-              <option key={epic.id} value={epic.id}>
-                {epic.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Assignee</label>
-          <select
-            value={formData.assigneeId}
-            onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value })}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Unassigned</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name || user.email}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Assignee */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Assignee</label>
+        <select
+          value={formData.assigneeId}
+          onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value })}
+          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        >
+          <option value="">Unassigned</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name || user.email}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Story Points */}

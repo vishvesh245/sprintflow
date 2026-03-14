@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 /**
  * Fetches a single issue by ID with all its relations
- * (comments, links, subtasks, team, assignee, sprint, epic, reporter).
+ * (comments, subtasks, team, assignee, sprint, reporter).
  *
  * Query key: ['issue', id]
  * Invalidating this key refreshes the issue detail view.

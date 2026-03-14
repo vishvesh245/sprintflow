@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Columns,
   List,
-  Layers,
   Palette,
   Settings,
   ChevronLeft,
