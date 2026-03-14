@@ -1,0 +1,339 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooler URL — used at runtime (port 6543)
+  directUrl = env("DIRECT_URL")     // direct URL — used by prisma migrate only (port 5432)
+}
+
+// Team model
+model Team {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  prefix       String    @unique
+  color        String
+  issueCounter Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  members     User[]
+  issues      Issue[]
+  designItems DesignItem[]
+
+  @@index([name])
+}
+
+// User model
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  image           String?
+  role            UserRole  @default(MEMBER)
+  displayName     String?
+  timezone        String    @default("UTC")
+  notifyOnAssign  Boolean   @default(true)
+  notifyOnComment Boolean   @default(true)
+  teamId          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team               Team?                @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  assignedIssues     Issue[]              @relation("assignee")
+  reportedIssues     Issue[]              @relation("reporter")
+  comments           Comment[]
+  notifications      Notification[]
+  accounts           Account[]
+  sessions           Session[]
+  createdEpics       Epic[]               @relation("createdBy")
+  designItems        DesignItem[]         @relation("designItemAssignee")
+  visualDesignItems  DesignItem[]         @relation("designItemVisualDesigner")
+
+  @@index([teamId])
+  @@index([email])
+}
+
+// NextAuth Account model
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// NextAuth Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// NextAuth VerificationToken model
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Sprint model
+model Sprint {
+  id        String       @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  status    SprintStatus @default(PLANNING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  issues       Issue[]
+  targetEpics  Epic[]
+
+  @@index([status])
+}
+
+// Epic model
+model Epic {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  status          EpicStatus   @default(ACTIVE)
+  targetSprintId  String?
+  createdById     String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  targetSprint Sprint?       @relation(fields: [targetSprintId], references: [id], onDelete: SetNull)
+  createdBy    User          @relation("createdBy", fields: [createdById], references: [id], onDelete: Restrict)
+  issues       Issue[]
+
+  @@index([targetSprintId])
+  @@index([createdById])
+  @@index([status])
+}
+
+// Issue model
+model Issue {
+  id             String        @id @default(cuid())
+  displayId      String        @unique
+  title          String
+  description    String?
+  type           IssueType
+  status         IssueStatus   @default(BACKLOG)
+  priority       IssuePriority @default(MEDIUM)
+  teamId         String
+  sprintId       String?
+  epicId         String?
+  assigneeId     String?
+  reporterId     String
+  parentIssueId  String?
+  labels         String[]
+  storyPoints    Int?
+  position       Int           @default(0)
+  deletedAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  team           Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sprint         Sprint?           @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  epic           Epic?             @relation(fields: [epicId], references: [id], onDelete: SetNull)
+  assignee       User?             @relation("assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reporter       User              @relation("reporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  parentIssue    Issue?            @relation("subtasks", fields: [parentIssueId], references: [id], onDelete: Cascade)
+  subtasks       Issue[]           @relation("subtasks")
+  sourceLinks    IssueLink[]       @relation("sourceIssue")
+  targetLinks    IssueLink[]       @relation("targetIssue")
+  comments           Comment[]
+  notifications      Notification[]
+  promotedFromDesign DesignItem?  @relation("promotedDesignItem")
+
+  @@index([teamId])
+  @@index([sprintId])
+  @@index([epicId])
+  @@index([assigneeId])
+  @@index([reporterId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// IssueLink model
+model IssueLink {
+  id             String          @id @default(cuid())
+  sourceIssueId  String
+  targetIssueId  String
+  linkType       IssueLinkType
+  createdAt      DateTime        @default(now())
+
+  sourceIssue Issue @relation("sourceIssue", fields: [sourceIssueId], references: [id], onDelete: Cascade)
+  targetIssue Issue @relation("targetIssue", fields: [targetIssueId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceIssueId, targetIssueId, linkType])
+  @@index([sourceIssueId])
+  @@index([targetIssueId])
+}
+
+// Comment model
+model Comment {
+  id        String   @id @default(cuid())
+  issueId   String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue  Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  author User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@index([authorId])
+}
+
+// Notification model
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String
+  issueId   String?
+  read      Boolean            @default(false)
+  createdAt DateTime           @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue Issue? @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([issueId])
+  @@index([read])
+}
+
+// DesignItem model
+model DesignItem {
+  id                String            @id @default(cuid())
+  title             String
+  description       String?
+  status            DesignItemStatus  @default(DRAFT)
+  priority          IssuePriority?
+  figmaLink         String?
+  assigneeId        String?
+  visualDesignerId  String?
+  teamId            String
+  startDate         DateTime?
+  endDate           DateTime?
+  promotedToIssueId String?           @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  assignee       User?  @relation("designItemAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  visualDesigner User?  @relation("designItemVisualDesigner", fields: [visualDesignerId], references: [id], onDelete: SetNull)
+  team           Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  promotedTo     Issue? @relation("promotedDesignItem", fields: [promotedToIssueId], references: [id], onDelete: SetNull)
+  todos          DesignTodo[]
+
+  @@index([teamId])
+  @@index([assigneeId])
+  @@index([visualDesignerId])
+  @@index([status])
+}
+
+model DesignTodo {
+  id           String   @id @default(cuid())
+  text         String
+  completed    Boolean  @default(false)
+  order        Int      @default(0)
+  designItemId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  designItem DesignItem @relation(fields: [designItemId], references: [id], onDelete: Cascade)
+
+  @@index([designItemId])
+}
+
+// Enums
+enum DesignItemStatus {
+  DRAFT
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum SprintStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+}
+
+enum EpicStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum IssueType {
+  STORY
+  TASK
+  BUG
+  SUBTASK
+}
+
+enum IssueStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  READY_FOR_QA
+  IN_REVIEW
+  BLOCKED
+  DONE
+}
+
+enum IssuePriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IssueLinkType {
+  BLOCKS
+  BLOCKED_BY
+  RELATES_TO
+  DUPLICATES
+  TESTS
+  TESTED_BY
+}
+
+enum NotificationType {
+  ISSUE_ASSIGNED
+  COMMENT_ADDED
+  ISSUE_BLOCKED
+}

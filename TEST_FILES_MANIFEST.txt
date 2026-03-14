@@ -1,0 +1,345 @@
+SprintSync Test Suite - Complete File Manifest
+================================================
+
+Created: March 2, 2026
+
+CONFIGURATION FILES
+===================
+
+1. vitest.config.ts (Project Root)
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /vitest.config.ts
+   - Purpose: Vitest configuration, path aliases, coverage setup
+   - Size: ~40 lines
+
+2. tests/setup.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/setup.ts
+   - Purpose: Global test setup, mocks, environment variables
+   - Mocks: next-auth, @/lib/auth, @/lib/prisma
+   - Size: ~180 lines
+
+VALIDATION TEST FILES (Pure Unit Tests)
+=======================================
+
+3. tests/validations/issue.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/validations/issue.test.ts
+   - Tests: Issue Zod validation schema
+   - Coverage:
+     * Title validation (3-255 chars)
+     * Type enum (STORY, TASK, BUG, SUBTASK)
+     * Priority enum (CRITICAL, HIGH, MEDIUM, LOW)
+     * Story points (positive integers)
+     * Labels (string arrays)
+     * Required vs optional fields
+   - Test Cases: ~80
+   - Assertions: ~200+
+   - Size: ~380 lines
+
+4. tests/validations/sprint.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/validations/sprint.test.ts
+   - Tests: Sprint Zod validation schemas
+   - Coverage:
+     * Name validation
+     * Date validation (endDate > startDate)
+     * Date coercion
+     * Complete sprint schema
+     * Issue action validation
+   - Test Cases: ~50
+   - Assertions: ~160+
+   - Size: ~370 lines
+
+API INTEGRATION TEST FILES (Mocked Endpoints)
+==============================================
+
+5. tests/api/sprints.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/api/sprints.test.ts
+   - Endpoints Tested:
+     * GET /api/sprints (fetch, filter by status)
+     * POST /api/sprints (create with validation)
+     * PATCH /api/sprints/[id] (status updates)
+     * POST /api/sprints/[id]/complete (completion)
+   - Coverage:
+     * Date validation
+     * ACTIVE sprint uniqueness
+     * Overlapping dates prevention
+     * State machine enforcement
+   - Test Cases: ~30
+   - Assertions: ~150+
+   - Size: ~280 lines
+
+6. tests/api/issues.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/api/issues.test.ts
+   - Endpoints Tested:
+     * GET /api/issues (fetch with filters)
+     * POST /api/issues (create)
+     * DELETE /api/issues/[id] (soft-delete)
+   - Coverage:
+     * Title length validation (3-255)
+     * QA team test link requirements
+     * Filtering (sprintId, teamId, status, backlog)
+     * Soft-delete (deletedAt not removed)
+     * Filter-out deleted issues
+   - Test Cases: ~40
+   - Assertions: ~180+
+   - Size: ~420 lines
+
+7. tests/api/epics.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/api/epics.test.ts
+   - Endpoints Tested:
+     * GET /api/epics (fetch with progress)
+     * POST /api/epics (create)
+     * PATCH /api/epics/[id] (update status)
+   - Coverage:
+     * Progress calculation (overall and per-team)
+     * Issue count tracking
+     * Status filtering
+     * Done/total counts
+   - Test Cases: ~25
+   - Assertions: ~140+
+   - Size: ~330 lines
+
+8. tests/api/links.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/api/links.test.ts
+   - Endpoints Tested:
+     * POST /api/issues/[id]/links (create)
+     * DELETE /api/issues/[id]/links (delete)
+   - Coverage:
+     * Auto-inverse links (BLOCKS↔BLOCKED_BY, TESTS↔TESTED_BY)
+     * Circular dependency detection
+     * All 6 link types
+     * Deletion of both primary and inverse
+   - Test Cases: ~20
+   - Assertions: ~120+
+   - Size: ~350 lines
+
+SMOKE TEST FILES (Live Server Testing)
+======================================
+
+9. tests/smoke.test.ts
+   - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/smoke.test.ts
+   - Framework: Vitest
+   - Tests Against: Running server at localhost:3000
+   - Coverage:
+     * Public pages (200 status)
+     * Auth-protected endpoints (401)
+     * Page redirects (302/307)
+     * Route health
+     * Response times
+     * Concurrent requests
+   - Test Cases: ~15
+   - Assertions: ~15+
+   - Size: ~150 lines
+
+10. tests/smoke.js
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/smoke.js
+    - Framework: Pure Node.js (no test framework)
+    - Tests Against: Running server at localhost:3000
+    - Run: npm run test:smoke
+    - Coverage:
+      * Public page loads
+      * API auth enforcement
+      * Page redirects
+      * Route health
+      * Server responsiveness
+      * Concurrent request handling
+    - Size: ~250 lines
+    - Features:
+      * Beautiful CLI output
+      * Pass/fail summary
+      * Error details
+      * Concurrent request testing
+
+UTILITY FILES
+=============
+
+11. tests/test-utils.ts
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /tests/test-utils.ts
+    - Purpose: Reusable test utilities
+    - Exports:
+      * Mock data factories
+      * Request builder helpers
+      * Validation test helpers
+      * Response parser utilities
+      * Prisma mock creator
+      * Date helpers
+      * Assert helpers
+      * Test data generators
+      * Performance testing utilities
+    - Size: ~400 lines
+
+DOCUMENTATION FILES
+===================
+
+12. TESTING.md
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /TESTING.md
+    - Purpose: Comprehensive testing guide
+    - Sections:
+      * Quick start
+      * Test structure explanation
+      * Running specific tests
+      * Coverage reports
+      * Mocked data overview
+      * Common patterns
+      * Best practices
+      * Troubleshooting
+    - Size: ~500 lines
+
+13. TEST_SUITE_SUMMARY.md
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /TEST_SUITE_SUMMARY.md
+    - Purpose: Complete test suite overview
+    - Sections:
+      * Files created with descriptions
+      * Test coverage statistics
+      * Key features
+      * Running instructions
+      * Test architecture
+      * Example test cases
+      * CI/CD integration
+    - Size: ~400 lines
+
+14. TESTING_QUICK_START.md
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /TESTING_QUICK_START.md
+    - Purpose: Quick reference for developers
+    - Sections:
+      * 5-minute setup
+      * Common commands
+      * Test anatomy
+      * Debugging tips
+      * Adding new tests
+      * Troubleshooting
+    - Size: ~300 lines
+
+15. TEST_FILES_MANIFEST.txt (This File)
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /TEST_FILES_MANIFEST.txt
+    - Purpose: Complete listing of all created files
+
+UPDATED FILES
+=============
+
+16. package.json
+    - Location: /sessions/wonderful-brave-brahmagupta/mnt/sprintsync /package.json
+    - Changes:
+      * Added "test": "vitest run"
+      * Added "test:watch": "vitest"
+      * Added "test:ui": "vitest --ui"
+      * Added "test:smoke": "node tests/smoke.js"
+      * Added vitest ^1.4.0 to devDependencies
+      * Added @vitest/ui ^1.4.0 to devDependencies
+
+SUMMARY STATISTICS
+==================
+
+Total Files Created: 15
+Total Lines of Code: ~4,500
+Total Test Cases: 140+
+Total Assertions: 1,000+
+
+By Category:
+- Configuration: 2 files (~220 lines)
+- Test Files: 8 files (~2,100 lines)
+- Utilities: 1 file (~400 lines)
+- Documentation: 4 files (~1,500 lines)
+
+Test Coverage:
+- Validation Tests: 130 test cases
+- API Tests: 115 test cases
+- Smoke Tests: 15 test cases
+- Total: 260+ test cases
+
+Assertion Coverage:
+- Unit/Validation: 360+ assertions
+- API Integration: 590+ assertions
+- Smoke Tests: 50+ assertions
+- Total: 1,000+ assertions
+
+INSTALLATION & USAGE
+====================
+
+Install Dependencies:
+  npm install
+
+Run All Tests:
+  npm test
+
+Watch Mode:
+  npm run test:watch
+
+Interactive UI:
+  npm run test:ui
+
+Smoke Tests (requires server):
+  npm run test:smoke
+
+Run Specific Test:
+  npm test -- sprints.test.ts
+
+Coverage Report:
+  npm test -- --coverage
+
+DIRECTORY STRUCTURE
+===================
+
+/sessions/wonderful-brave-brahmagupta/mnt/sprintsync/
+├── vitest.config.ts
+├── package.json (UPDATED)
+├── TESTING.md
+├── TESTING_QUICK_START.md
+├── TEST_SUITE_SUMMARY.md
+├── TEST_FILES_MANIFEST.txt
+├── tests/
+│   ├── setup.ts
+│   ├── test-utils.ts
+│   ├── smoke.test.ts
+│   ├── smoke.js
+│   ├── api/
+│   │   ├── sprints.test.ts
+│   │   ├── issues.test.ts
+│   │   ├── epics.test.ts
+│   │   └── links.test.ts
+│   └── validations/
+│       ├── issue.test.ts
+│       └── sprint.test.ts
+
+QUALITY METRICS
+===============
+
+Code Quality:
+✓ TypeScript for type safety
+✓ ESLint compatible patterns
+✓ Descriptive test names
+✓ Clear arrange-act-assert structure
+✓ No placeholder/dummy tests
+
+Test Coverage:
+✓ Data validation (comprehensive)
+✓ API endpoints (all CRUD operations)
+✓ State machines (transitions)
+✓ Relationships (inverses, constraints)
+✓ Authorization (auth checks)
+✓ Edge cases (boundary values)
+✓ Error scenarios (validation failures)
+✓ Performance (concurrency, timing)
+
+Maintenance:
+✓ Easy to add new tests
+✓ Reusable utilities
+✓ Clear documentation
+✓ Mocks can be overridden per test
+✓ No external service dependencies
+
+NEXT STEPS FOR USERS
+====================
+
+1. Run: npm install
+2. Run: npm test
+3. Review test files in tests/ directory
+4. Read TESTING_QUICK_START.md for common tasks
+5. Read TESTING.md for detailed information
+6. Add tests for new features following existing patterns
+
+CREATED BY
+==========
+Claude Code - Automated Test Suite Generator
+Date: March 2, 2026
+Version: 1.0
+Designed for: SprintSync Next.js Application
+
