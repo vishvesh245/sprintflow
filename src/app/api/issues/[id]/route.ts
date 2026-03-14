@@ -135,43 +135,75 @@ export async function PATCH(
     // Auto-transition BACKLOG → TODO when issue is assigned to an ACTIVE sprint.
     // Issues in PLANNING sprints stay BACKLOG until the sprint is started.
     const patchData: typeof updateData & { status?: string } = { ...updateData }
-    if (
-      updateData.sprintId &&          // sprint is being set
-      !updateData.status &&           // caller didn't explicitly change status
-      issue.status === "BACKLOG"      // issue is still in backlog state
-    ) {
+    let targetSprintStatus: string | null = null
+    if (updateData.sprintId) {
       const targetSprint = await prisma.sprint.findUnique({
         where: { id: updateData.sprintId },
         select: { status: true },
       })
-      if (targetSprint?.status === "ACTIVE") {
+      targetSprintStatus = targetSprint?.status ?? null
+      if (
+        !updateData.status &&           // caller didn't explicitly change status
+        issue.status === "BACKLOG" &&   // issue is still in backlog state
+        targetSprintStatus === "ACTIVE"
+      ) {
         patchData.status = "TODO"
       }
     }
 
-    // Update the issue
-    const updatedIssue = await prisma.issue.update({
-      where: { id: issue.id },
-      data: patchData,
-      include: issueDetailInclude,
-    })
+    // Update the issue + cascade subtasks in a single transaction
+    const updatedIssue = await prisma.$transaction(async (tx) => {
+      const updated = await tx.issue.update({
+        where: { id: issue.id },
+        data: patchData,
+        include: issueDetailInclude,
+      })
 
-    // ── Process child actions (close / move to backlog) ─────────────────────
-    if (parsedChildActions && parsedChildActions.length > 0) {
-      for (const ca of parsedChildActions) {
-        if (ca.action === "close") {
-          await prisma.issue.update({
-            where: { id: ca.issueId },
-            data: { status: "DONE" },
-          })
-        } else if (ca.action === "backlog") {
-          await prisma.issue.update({
-            where: { id: ca.issueId },
-            data: { status: "BACKLOG", sprintId: null },
-          })
+      // ── Cascade sprintId to subtasks ──────────────────────────────────────
+      // When a parent issue moves to a sprint (or back to backlog), its subtasks follow.
+      if ('sprintId' in updateData) {
+        const subtaskUpdate: { sprintId: string | null; status?: string } = {
+          sprintId: updateData.sprintId ?? null,
+        }
+        if (patchData.status === 'TODO') {
+          // Parent auto-transitioned BACKLOG→TODO (active sprint), subtasks follow
+          subtaskUpdate.status = 'TODO'
+        } else if (!updateData.sprintId) {
+          // Moving to backlog (sprintId = null), reset subtasks to BACKLOG
+          subtaskUpdate.status = 'BACKLOG'
+        } else if (targetSprintStatus === 'PLANNING') {
+          // Moving to a planning sprint, reset subtasks to BACKLOG
+          subtaskUpdate.status = 'BACKLOG'
+        }
+        await tx.issue.updateMany({
+          where: {
+            parentIssueId: issue.id,
+            deletedAt: null,
+            status: { not: 'DONE' },
+          },
+          data: subtaskUpdate,
+        })
+      }
+
+      // ── Process child actions (close / move to backlog) ───────────────────
+      if (parsedChildActions && parsedChildActions.length > 0) {
+        for (const ca of parsedChildActions) {
+          if (ca.action === "close") {
+            await tx.issue.update({
+              where: { id: ca.issueId },
+              data: { status: "DONE" },
+            })
+          } else if (ca.action === "backlog") {
+            await tx.issue.update({
+              where: { id: ca.issueId },
+              data: { status: "BACKLOG", sprintId: null },
+            })
+          }
         }
       }
-    }
+
+      return updated
+    })
 
     // Create notification if assignee changed
     if (updateData.assigneeId && updateData.assigneeId !== oldAssigneeId) {

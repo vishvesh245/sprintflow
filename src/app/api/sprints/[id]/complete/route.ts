@@ -93,9 +93,19 @@ export async function POST(
             where: { id: issue.id },
             data: { sprintId: null, status: "BACKLOG" },
           })
+          // Cascade: move incomplete subtasks to backlog too
+          await tx.issue.updateMany({
+            where: { parentIssueId: issue.id, deletedAt: null, status: { not: "DONE" } },
+            data: { sprintId: null, status: "BACKLOG" },
+          })
         } else if (action.action === "next_sprint") {
           await tx.issue.update({
             where: { id: issue.id },
+            data: { sprintId: action.targetSprintId! },
+          })
+          // Cascade: move incomplete subtasks to next sprint too
+          await tx.issue.updateMany({
+            where: { parentIssueId: issue.id, deletedAt: null, status: { not: "DONE" } },
             data: { sprintId: action.targetSprintId! },
           })
         }
