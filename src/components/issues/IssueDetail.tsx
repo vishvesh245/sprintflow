@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Edit2, X, Check, Plus, ChevronDown, ChevronRight, Bug, GitBranch, Trash2 } from 'lucide-react'
+import { Edit2, X, Check, Plus, ChevronDown, ChevronRight, GitBranch, Trash2 } from 'lucide-react'
 import { formatDate, getTimeAgo, getTeamColor, cn } from '@/lib/utils'
 import { getPriorityBadge, getStatusBadge } from '@/lib/colors'
 import { StatusBadge } from './StatusBadge'
@@ -89,9 +89,6 @@ export function IssueDetail({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [addingSubtask, setAddingSubtask] = useState(false)
   const [subtaskSaving, setSubtaskSaving] = useState(false)
-
-  // Linked bugs panel
-  const [bugsExpanded, setBugsExpanded] = useState(true)
 
   // Edit state — all fields
   const [editTitle, setEditTitle] = useState('')
@@ -297,15 +294,6 @@ export function IssueDetail({
           />
         )}
 
-        {/* ── Linked Bugs Section ── */}
-        {!editMode && (
-          <LinkedBugsPanel
-            links={issue.sourceLinks || []}
-            expanded={bugsExpanded}
-            onToggle={() => setBugsExpanded((v) => !v)}
-            onNavigate={(id) => router.push(`/issues/${id}`)}
-          />
-        )}
       </div>
 
       {/* ── Sidebar ── */}
@@ -669,74 +657,3 @@ function SubtasksPanel({
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LinkedBugsPanel — shows TESTED_BY links (bugs found against this task)
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface LinkedBugsPanelProps {
-  links: any[]
-  expanded: boolean
-  onToggle: () => void
-  onNavigate: (id: string) => void
-}
-
-function LinkedBugsPanel({ links, expanded, onToggle, onNavigate }: LinkedBugsPanelProps) {
-  const testedByLinks = links.filter((l: any) => l.linkType === 'TESTED_BY')
-  if (testedByLinks.length === 0) return null
-
-  const openCount = testedByLinks.filter((l: any) => l.targetIssue?.status !== 'DONE').length
-
-  return (
-    <div className={cn('rounded-lg border overflow-hidden', openCount > 0 ? 'border-orange-200' : 'border-gray-200')}>
-      {/* Header */}
-      <button
-        onClick={onToggle}
-        className={cn(
-          'w-full flex items-center gap-2 px-4 py-3 text-left border-b',
-          openCount > 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200',
-        )}
-      >
-        {expanded ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronRight className="h-4 w-4 text-gray-500" />}
-        <Bug className={cn('h-4 w-4', openCount > 0 ? 'text-orange-500' : 'text-gray-400')} />
-        <span className={cn('text-sm font-semibold', openCount > 0 ? 'text-orange-800' : 'text-gray-700')}>
-          Linked Bugs
-        </span>
-        <span className={cn(
-          'text-xs font-medium px-2 py-0.5 rounded-full',
-          openCount > 0 ? 'bg-orange-100 text-orange-700' : 'bg-white border border-gray-200 text-gray-400',
-        )}>
-          {openCount} open / {testedByLinks.length} total
-        </span>
-        {openCount > 0 && (
-          <span className="ml-auto text-xs text-orange-600 font-medium">⚠ Resolve before closing</span>
-        )}
-      </button>
-
-      {expanded && (
-        <div className="divide-y divide-gray-100 bg-white">
-          {testedByLinks.map((link: any) => {
-            const bug = link.targetIssue
-            if (!bug) return null
-            const isDone = bug.status === 'DONE'
-            return (
-              <div
-                key={link.id}
-                onClick={() => onNavigate(bug.id)}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
-              >
-                <span className={cn('shrink-0 text-xs font-medium px-2 py-0.5 rounded-full', getStatusBadge(bug.status))}>
-                  {STATUS_LABEL[bug.status] || bug.status}
-                </span>
-                <span className="text-xs font-semibold text-gray-400 shrink-0">{bug.displayId}</span>
-                <span className={cn('text-sm truncate', isDone ? 'text-gray-400 line-through' : 'text-gray-800')}>
-                  {bug.title}
-                </span>
-                {!isDone && <span className="ml-auto shrink-0 text-xs text-orange-500 font-medium">Open</span>}
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}

@@ -12,7 +12,6 @@ import { useUsers } from '@/hooks/useUsers'
 import { useEpics } from '@/hooks/useEpics'
 import { useSprints } from '@/hooks/useSprints'
 import { IssueDetail } from './IssueDetail'
-import { IssueLinks } from './IssueLinks'
 import { CommentThread } from './CommentThread'
 import { StatusBadge } from './StatusBadge'
 import { ChildResolutionModal, ChildAction } from './ChildResolutionModal'
@@ -200,7 +199,6 @@ function SlideOverContent({
   // Resolution modal state
   const [pendingUpdate, setPendingUpdate] = useState<Record<string, any> | null>(null)
   const [openSubtasks, setOpenSubtasks] = useState<any[]>([])
-  const [openBugs, setOpenBugs] = useState<any[]>([])
   const [showResolutionModal, setShowResolutionModal] = useState(false)
 
   // Data queries
@@ -254,7 +252,6 @@ function SlideOverContent({
       if (data.requiresResolution) {
         setPendingUpdate(updates)
         setOpenSubtasks(data.openSubtasks || [])
-        setOpenBugs(data.openBugs || [])
         setShowResolutionModal(true)
         return
       }
@@ -282,7 +279,6 @@ function SlideOverContent({
     setShowResolutionModal(false)
     setPendingUpdate(null)
     setOpenSubtasks([])
-    setOpenBugs([])
   }
 
   // Add subtask
@@ -325,28 +321,6 @@ function SlideOverContent({
     queryClient.setQueryData(['issue', issueId], (prev: any) =>
       prev ? { ...prev, comments: [...(prev.comments || []), comment] } : prev,
     )
-  }
-
-  // Links
-  const handleAddLink = async (targetDisplayId: string, type: string) => {
-    const res = await fetch(`/api/issues/${issueId}/links`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetIssueId: targetDisplayId, linkType: type }),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      throw new Error(data.error || 'Failed to add link')
-    }
-    invalidateIssue()
-  }
-
-  const handleRemoveLink = async (linkId: string) => {
-    const res = await fetch(`/api/issues/${issueId}/links?linkId=${linkId}`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) throw new Error('Failed to remove link')
-    invalidateIssue()
   }
 
   // ── Render ──
@@ -417,7 +391,6 @@ function SlideOverContent({
               isOpen={showResolutionModal}
               issueTitle={issue.title || ''}
               openSubtasks={openSubtasks}
-              openBugs={openBugs}
               onConfirm={handleResolutionConfirm}
               onCancel={() => {
                 setShowResolutionModal(false)
@@ -435,17 +408,6 @@ function SlideOverContent({
                 onUpdate={handleUpdate}
                 onAddSubtask={(title) => addSubtask(title)}
                 onDelete={handleDelete}
-              />
-
-              <IssueLinks
-                issueId={issueId}
-                links={(issue.sourceLinks || []).map((sl: any) => ({
-                  id: sl.id,
-                  type: sl.linkType,
-                  targetIssue: sl.targetIssue,
-                }))}
-                onAddLink={handleAddLink}
-                onRemoveLink={handleRemoveLink}
               />
 
               <CommentThread

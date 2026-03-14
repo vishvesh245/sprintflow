@@ -12,7 +12,6 @@ import { useUsers } from '@/hooks/useUsers'
 import { useEpics } from '@/hooks/useEpics'
 import { useSprints } from '@/hooks/useSprints'
 import { IssueDetail } from '@/components/issues/IssueDetail'
-import { IssueLinks } from '@/components/issues/IssueLinks'
 import { CommentThread } from '@/components/issues/CommentThread'
 import { ChildResolutionModal, ChildAction } from '@/components/issues/ChildResolutionModal'
 
@@ -25,7 +24,6 @@ export default function IssueDetailPage() {
   // Child resolution modal state (kept as local state — not query state)
   const [pendingUpdate, setPendingUpdate] = useState<Record<string, any> | null>(null)
   const [openSubtasks, setOpenSubtasks] = useState<any[]>([])
-  const [openBugs, setOpenBugs] = useState<any[]>([])
   const [showResolutionModal, setShowResolutionModal] = useState(false)
 
   // ── Data queries ──────────────────────────────────────────────
@@ -87,7 +85,6 @@ export default function IssueDetailPage() {
       if (data.requiresResolution) {
         setPendingUpdate(updates)
         setOpenSubtasks(data.openSubtasks || [])
-        setOpenBugs(data.openBugs || [])
         setShowResolutionModal(true)
         return // modal handles it
       }
@@ -118,7 +115,6 @@ export default function IssueDetailPage() {
     setShowResolutionModal(false)
     setPendingUpdate(null)
     setOpenSubtasks([])
-    setOpenBugs([])
   }
 
   // Add subtask
@@ -166,29 +162,6 @@ export default function IssueDetailPage() {
     )
   }
 
-  // Add link
-  const handleAddLink = async (targetDisplayId: string, type: string) => {
-    const res = await fetch(`/api/issues/${issueId}/links`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetIssueId: targetDisplayId, linkType: type }),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      throw new Error(data.error || 'Failed to add link')
-    }
-    invalidateIssue()
-  }
-
-  // Remove link
-  const handleRemoveLink = async (linkId: string) => {
-    const res = await fetch(`/api/issues/${issueId}/links?linkId=${linkId}`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) throw new Error('Failed to remove link')
-    invalidateIssue()
-  }
-
   // ── Render ────────────────────────────────────────────────────
   if (initialLoading) {
     return <SpinArcLoader message="Loading issue..." />
@@ -211,12 +184,6 @@ export default function IssueDetailPage() {
     )
   }
 
-  const links = (issue.sourceLinks || []).map((sl: any) => ({
-    id: sl.id,
-    type: sl.linkType,
-    targetIssue: sl.targetIssue,
-  }))
-
   return (
     <>
       {/* Child resolution modal — rendered outside the page scroll flow */}
@@ -224,7 +191,6 @@ export default function IssueDetailPage() {
         isOpen={showResolutionModal}
         issueTitle={issue?.title || ''}
         openSubtasks={openSubtasks}
-        openBugs={openBugs}
         onConfirm={handleResolutionConfirm}
         onCancel={() => {
           setShowResolutionModal(false)
@@ -251,13 +217,6 @@ export default function IssueDetailPage() {
           onUpdate={handleUpdate}
           onAddSubtask={(title) => addSubtask(title)}
           onDelete={handleDelete}
-        />
-
-        <IssueLinks
-          issueId={issueId}
-          links={links}
-          onAddLink={handleAddLink}
-          onRemoveLink={handleRemoveLink}
         />
 
         <CommentThread

@@ -12,8 +12,6 @@ export const issueWithRelationsInclude = {
   team: true,
   parentIssue: true,
   subtasks: true,
-  sourceLinks: true,
-  targetLinks: true,
   comments: true,
 } as const
 
@@ -67,32 +65,6 @@ export const TEAM_COLORS: Record<string, string> = {
   red: '#EF4444',
   indigo: '#6366F1',
   cyan: '#06B6D4',
-}
-
-// Link type display names
-export const LINK_TYPE_DISPLAY: Record<string, string> = {
-  BLOCKS: 'Blocks',
-  BLOCKED_BY: 'Blocked by',
-  RELATES_TO: 'Relates to',
-  DUPLICATES: 'Duplicates',
-  DUPLICATED_BY: 'Duplicated by',
-  TESTS: 'Tests',
-  TESTED_BY: 'Tested by',
-  PARENT: 'Parent of',
-  CHILD: 'Child of',
-}
-
-// Link type inverse map
-export const LINK_TYPE_INVERSE: Record<string, string> = {
-  BLOCKS: 'BLOCKED_BY',
-  BLOCKED_BY: 'BLOCKS',
-  RELATES_TO: 'RELATES_TO',
-  DUPLICATES: 'DUPLICATED_BY',
-  DUPLICATED_BY: 'DUPLICATES',
-  TESTS: 'TESTED_BY',
-  TESTED_BY: 'TESTS',
-  PARENT: 'CHILD',
-  CHILD: 'PARENT',
 }
 
 // Extend next-auth Session type

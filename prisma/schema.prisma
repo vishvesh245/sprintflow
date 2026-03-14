@@ -166,8 +166,6 @@ model Issue {
   reporter       User              @relation("reporter", fields: [reporterId], references: [id], onDelete: Restrict)
   parentIssue    Issue?            @relation("subtasks", fields: [parentIssueId], references: [id], onDelete: Cascade)
   subtasks       Issue[]           @relation("subtasks")
-  sourceLinks    IssueLink[]       @relation("sourceIssue")
-  targetLinks    IssueLink[]       @relation("targetIssue")
   comments           Comment[]
   notifications      Notification[]
   promotedFromDesign DesignItem?  @relation("promotedDesignItem")
@@ -179,22 +177,6 @@ model Issue {
   @@index([reporterId])
   @@index([status])
   @@index([deletedAt])
-}
-
-// IssueLink model
-model IssueLink {
-  id             String          @id @default(cuid())
-  sourceIssueId  String
-  targetIssueId  String
-  linkType       IssueLinkType
-  createdAt      DateTime        @default(now())
-
-  sourceIssue Issue @relation("sourceIssue", fields: [sourceIssueId], references: [id], onDelete: Cascade)
-  targetIssue Issue @relation("targetIssue", fields: [targetIssueId], references: [id], onDelete: Cascade)
-
-  @@unique([sourceIssueId, targetIssueId, linkType])
-  @@index([sourceIssueId])
-  @@index([targetIssueId])
 }
 
 // Comment model
@@ -321,15 +303,6 @@ enum IssuePriority {
   HIGH
   MEDIUM
   LOW
-}
-
-enum IssueLinkType {
-  BLOCKS
-  BLOCKED_BY
-  RELATES_TO
-  DUPLICATES
-  TESTS
-  TESTED_BY
 }
 
 enum NotificationType {

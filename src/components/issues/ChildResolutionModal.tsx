@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, GitBranch, Bug, CheckCircle2 } from 'lucide-react'
+import { X, GitBranch, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getStatusBadge } from '@/lib/colors'
 
@@ -18,7 +18,6 @@ interface ChildResolutionModalProps {
   isOpen: boolean
   issueTitle: string
   openSubtasks: ChildItem[]
-  openBugs: ChildItem[]
   onConfirm: (actions: Array<{ issueId: string; action: ChildAction }>) => Promise<void>
   onCancel: () => void
 }
@@ -32,13 +31,11 @@ export function ChildResolutionModal({
   isOpen,
   issueTitle,
   openSubtasks,
-  openBugs,
   onConfirm,
   onCancel,
 }: ChildResolutionModalProps) {
   const allItems = [
     ...openSubtasks.map((s) => ({ ...s, kind: 'subtask' as const })),
-    ...openBugs.map((b) => ({ ...b, kind: 'bug' as const })),
   ]
 
   const [actions, setActions] = useState<Record<string, ChildAction>>(
@@ -124,25 +121,6 @@ export function ChildResolutionModal({
             </div>
           )}
 
-          {/* Bugs group */}
-          {openBugs.length > 0 && (
-            <div>
-              <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-orange-600">
-                <Bug className="h-3.5 w-3.5" />
-                Open Linked Bugs ({openBugs.length})
-              </div>
-              <div className="space-y-2">
-                {openBugs.map((bug) => (
-                  <ItemRow
-                    key={bug.id}
-                    item={{ ...bug, kind: 'bug' }}
-                    action={actions[bug.id]}
-                    onChange={(a) => setActions((prev) => ({ ...prev, [bug.id]: a }))}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer */}

@@ -9,9 +9,6 @@ import { createNotification } from "@/lib/utils/notifications"
 import { generateIssueId } from "@/lib/utils/issueId"
 import { z } from "zod"
 
-const createIssueWithTestsSchema = createIssueSchema.extend({
-  testLinks: z.array(z.string()).optional(),
-})
 
 export async function GET(request: Request) {
   try {
@@ -102,8 +99,7 @@ export async function POST(request: Request) {
       labels,
       storyPoints,
       parentIssueId,
-      testLinks,
-    } = createIssueWithTestsSchema.parse(body)
+    } = createIssueSchema.parse(body)
 
     // Check if team exists
     const team = await prisma.team.findUnique({
@@ -112,14 +108,6 @@ export async function POST(request: Request) {
 
     if (!team) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 })
-    }
-
-    // If QA team and not TASK type, require testLinks
-    if (team.prefix === "QA" && type !== "TASK" && (!testLinks || testLinks.length === 0)) {
-      return NextResponse.json(
-        { error: "QA team requires at least one test link for non-TASK issues" },
-        { status: 400 }
-      )
     }
 
     // Generate displayId using atomic counter
@@ -163,29 +151,6 @@ export async function POST(request: Request) {
         epic: true,
       },
     })
-
-    // Create issue links for tests if provided
-    if (testLinks && testLinks.length > 0) {
-      for (const targetIssueId of testLinks) {
-        // Create TESTS link from new issue to target
-        await prisma.issueLink.create({
-          data: {
-            sourceIssueId: issue.id,
-            targetIssueId,
-            linkType: "TESTS",
-          },
-        })
-
-        // Create TESTED_BY link from target to new issue
-        await prisma.issueLink.create({
-          data: {
-            sourceIssueId: targetIssueId,
-            targetIssueId: issue.id,
-            linkType: "TESTED_BY",
-          },
-        })
-      }
-    }
 
     // Create notification for assignee if assigned
     if (assigneeId) {

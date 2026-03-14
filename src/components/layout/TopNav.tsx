@@ -116,10 +116,6 @@ export function TopNav() {
         parentIssueId: formData.type === 'SUBTASK' && formData.parentIssueId
           ? formData.parentIssueId
           : undefined,
-        // BUG: create TESTS/TESTED_BY links via testLinks
-        testLinks: formData.type === 'BUG' && formData.linkedTaskId
-          ? [formData.linkedTaskId]
-          : undefined,
       }
 
       const res = await fetch('/api/issues', {

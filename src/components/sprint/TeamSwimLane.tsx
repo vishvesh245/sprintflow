@@ -33,7 +33,7 @@ export default function TeamSwimLane({ teamName, teamColor, issues, teamId }: Te
       in_progress: issues.filter(i => i.status === 'IN_PROGRESS').length,
       ready_for_qa: issues.filter(i => i.status === 'READY_FOR_QA').length,
       in_review: issues.filter(i => i.status === 'IN_REVIEW').length,
-      blocked: issues.filter(i => i.sourceLinks && i.sourceLinks.some(l => l.linkType === 'BLOCKED_BY')).length,
+      blocked: issues.filter(i => i.status === 'BLOCKED').length,
       done: issues.filter(i => i.status === 'DONE').length,
     }
   }, [issues])

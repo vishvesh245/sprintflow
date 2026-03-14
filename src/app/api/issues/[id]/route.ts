@@ -22,26 +22,6 @@ const issueDetailInclude = {
     },
     orderBy: { createdAt: "asc" as const },
   },
-  sourceLinks: {
-    include: {
-      targetIssue: {
-        select: {
-          id: true, displayId: true, title: true, status: true, type: true,
-          team: { select: { id: true, name: true, prefix: true, color: true } },
-        },
-      },
-    },
-  },
-  targetLinks: {
-    include: {
-      sourceIssue: {
-        select: {
-          id: true, displayId: true, title: true, status: true, type: true,
-          team: { select: { id: true, name: true, prefix: true, color: true } },
-        },
-      },
-    },
-  },
   subtasks: {
     where: { deletedAt: null },
     select: { id: true, displayId: true, title: true, status: true, type: true, priority: true },
@@ -141,24 +121,9 @@ export async function PATCH(
         },
       })
 
-      const testedByLinks = await prisma.issueLink.findMany({
-        where: { sourceIssueId: issue.id, linkType: "TESTED_BY" },
-        include: {
-          targetIssue: {
-            select: {
-              id: true, displayId: true, title: true, status: true,
-              assignee: { select: { id: true, name: true, email: true, image: true } },
-            },
-          },
-        },
-      })
-      const openBugs = testedByLinks
-        .filter((l) => l.targetIssue.status !== "DONE")
-        .map((l) => l.targetIssue)
-
-      if (openSubtasks.length > 0 || openBugs.length > 0) {
+      if (openSubtasks.length > 0) {
         return NextResponse.json(
-          { requiresResolution: true, openSubtasks, openBugs },
+          { requiresResolution: true, openSubtasks },
           { status: 409 }
         )
       }
@@ -276,16 +241,6 @@ export async function DELETE(
     const deletedIssue = await prisma.issue.update({
       where: { id: issue.id },
       data: { deletedAt: now },
-    })
-
-    // Remove all issue links
-    await prisma.issueLink.deleteMany({
-      where: {
-        OR: [
-          { sourceIssueId: issue.id },
-          { targetIssueId: issue.id },
-        ],
-      },
     })
 
     // Remove from epic if assigned
