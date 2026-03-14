@@ -62,8 +62,8 @@ export async function GET(
     // Try to find by id first, fall back to displayId — cached for 30s
     const issue = await cached(`issue:${params.id}`, 30_000, async () => {
       return (
-        (await prisma.issue.findUnique({
-          where: { id: params.id },
+        (await prisma.issue.findFirst({
+          where: { id: params.id, deletedAt: null },
           include: issueDetailInclude,
         })) ??
         (await prisma.issue.findFirst({
@@ -111,9 +111,9 @@ export async function PATCH(
     ).optional()
     const parsedChildActions = childActionsSchema.parse(childActions)
 
-    // Find issue by id or displayId
-    let issue = await prisma.issue.findUnique({
-      where: { id: params.id },
+    // Find issue by id or displayId (exclude soft-deleted)
+    let issue = await prisma.issue.findFirst({
+      where: { id: params.id, deletedAt: null },
     })
 
     if (!issue) {
@@ -251,9 +251,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Find issue by id or displayId
-    let issue = await prisma.issue.findUnique({
-      where: { id: params.id },
+    // Find issue by id or displayId (exclude soft-deleted)
+    let issue = await prisma.issue.findFirst({
+      where: { id: params.id, deletedAt: null },
     })
 
     if (!issue) {
