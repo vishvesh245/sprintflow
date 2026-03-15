@@ -60,7 +60,7 @@ export async function POST(
       }
     }
 
-    // Validate all actions before executing to fail fast
+    // ── Validate: one batched query instead of N sequential ones ────────
     for (const action of issueActions) {
       if (action.action === "next_sprint" && !action.targetSprintId) {
         return NextResponse.json(
@@ -68,47 +68,73 @@ export async function POST(
           { status: 400 }
         )
       }
-      if (action.action === "next_sprint" && action.targetSprintId) {
-        const targetSprint = await prisma.sprint.findUnique({
-          where: { id: action.targetSprintId },
-        })
-        if (!targetSprint) {
-          return NextResponse.json(
-            { error: `Target sprint ${action.targetSprintId} not found` },
-            { status: 404 }
-          )
-        }
+    }
+
+    const targetSprintIds = [
+      ...new Set(
+        issueActions
+          .filter((a) => a.action === "next_sprint" && a.targetSprintId)
+          .map((a) => a.targetSprintId!)
+      ),
+    ]
+    if (targetSprintIds.length > 0) {
+      const found = await prisma.sprint.findMany({
+        where: { id: { in: targetSprintIds } },
+        select: { id: true },
+      })
+      const foundIds = new Set(found.map((s) => s.id))
+      const missing = targetSprintIds.find((id) => !foundIds.has(id))
+      if (missing) {
+        return NextResponse.json(
+          { error: `Target sprint ${missing} not found` },
+          { status: 404 }
+        )
       }
     }
 
-    // Execute all issue moves + sprint status change in a single transaction
-    // so it's all-or-nothing — no partial state on failure.
-    const completedSprint = await prisma.$transaction(async (tx) => {
-      for (const action of issueActions) {
-        const issue = incompleteIssues.find((i) => i.id === action.issueId)
-        if (!issue) continue
+    // ── Group actions by type for batched execution ──────────────────
+    const incompleteIds = new Set(incompleteIssues.map((i) => i.id))
 
-        if (action.action === "backlog") {
-          await tx.issue.update({
-            where: { id: issue.id },
-            data: { sprintId: null, status: "BACKLOG" },
-          })
-          // Cascade: move incomplete subtasks to backlog too
-          await tx.issue.updateMany({
-            where: { parentIssueId: issue.id, deletedAt: null, status: { not: "DONE" } },
-            data: { sprintId: null, status: "BACKLOG" },
-          })
-        } else if (action.action === "next_sprint") {
-          await tx.issue.update({
-            where: { id: issue.id },
-            data: { sprintId: action.targetSprintId! },
-          })
-          // Cascade: move incomplete subtasks to next sprint too
-          await tx.issue.updateMany({
-            where: { parentIssueId: issue.id, deletedAt: null, status: { not: "DONE" } },
-            data: { sprintId: action.targetSprintId! },
-          })
-        }
+    const backlogIssueIds: string[] = []
+    // Map of targetSprintId → issueIds moving there
+    const nextSprintGroups = new Map<string, string[]>()
+
+    for (const action of issueActions) {
+      if (!incompleteIds.has(action.issueId)) continue
+      if (action.action === "backlog") {
+        backlogIssueIds.push(action.issueId)
+      } else if (action.action === "next_sprint" && action.targetSprintId) {
+        const group = nextSprintGroups.get(action.targetSprintId) ?? []
+        group.push(action.issueId)
+        nextSprintGroups.set(action.targetSprintId, group)
+      }
+    }
+
+    // Execute all moves in a single transaction with batched updateMany calls
+    // instead of looping individual updates — O(groups) queries, not O(issues).
+    const completedSprint = await prisma.$transaction(async (tx) => {
+      // Backlog: batch parent + subtask moves
+      if (backlogIssueIds.length > 0) {
+        await tx.issue.updateMany({
+          where: { id: { in: backlogIssueIds } },
+          data: { sprintId: null, status: "BACKLOG" },
+        })
+        await tx.issue.updateMany({
+          where: { parentIssueId: { in: backlogIssueIds }, deletedAt: null, status: { not: "DONE" } },
+          data: { sprintId: null, status: "BACKLOG" },
+        })
+      }
+
+      // Next sprint: one batch per target sprint
+      for (const [targetSprintId, issueIds] of nextSprintGroups) {
+        await tx.issue.updateMany({
+          where: { id: { in: issueIds } },
+          data: { sprintId: targetSprintId },
+        })
+        await tx.issue.updateMany({
+          where: { parentIssueId: { in: issueIds }, deletedAt: null, status: { not: "DONE" } },
+          data: { sprintId: targetSprintId },
+        })
       }
 
       return tx.sprint.update({

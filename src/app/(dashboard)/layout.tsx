@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { TopNav } from '@/components/layout/TopNav'
 import { TeamSelectionModal } from '@/components/modals/TeamSelectionModal'
 import { IssueSlideOverWrapper } from '@/components/issues/IssueSlideOverWrapper'
+import { LazyToaster } from '@/components/ui/LazyToaster'
 
 export default async function DashboardLayout({
   children,
@@ -39,6 +40,7 @@ export default async function DashboardLayout({
           )}
         </main>
       </div>
+      <LazyToaster />
     </div>
   )
 }

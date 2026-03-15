@@ -21,6 +21,7 @@ const issueDetailInclude = {
       author: { select: { id: true, name: true, email: true, image: true } },
     },
     orderBy: { createdAt: "asc" as const },
+    take: 100, // cap to prevent unbounded payloads on issues with many comments
   },
   subtasks: {
     where: { deletedAt: null },
@@ -91,19 +92,13 @@ export async function PATCH(
     ).optional()
     const parsedChildActions = childActionsSchema.parse(childActions)
 
-    // Find issue by id or displayId (exclude soft-deleted)
-    let issue = await prisma.issue.findFirst({
-      where: { id: params.id, deletedAt: null },
+    // Find issue by id or displayId in a single query (avoids sequential round-trips)
+    const issue = await prisma.issue.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [{ id: params.id }, { displayId: params.id }],
+      },
     })
-
-    if (!issue) {
-      issue = await prisma.issue.findFirst({
-        where: {
-          displayId: params.id,
-          deletedAt: null,
-        },
-      })
-    }
 
     if (!issue) {
       return NextResponse.json({ error: "Issue not found" }, { status: 404 })
@@ -185,20 +180,22 @@ export async function PATCH(
         })
       }
 
-      // ── Process child actions (close / move to backlog) ───────────────────
+      // ── Process child actions (close / move to backlog) — batched ─────────
       if (parsedChildActions && parsedChildActions.length > 0) {
-        for (const ca of parsedChildActions) {
-          if (ca.action === "close") {
-            await tx.issue.update({
-              where: { id: ca.issueId },
-              data: { status: "DONE" },
-            })
-          } else if (ca.action === "backlog") {
-            await tx.issue.update({
-              where: { id: ca.issueId },
-              data: { status: "BACKLOG", sprintId: null },
-            })
-          }
+        const closeIds = parsedChildActions.filter((ca) => ca.action === "close").map((ca) => ca.issueId)
+        const backlogIds = parsedChildActions.filter((ca) => ca.action === "backlog").map((ca) => ca.issueId)
+
+        if (closeIds.length > 0) {
+          await tx.issue.updateMany({
+            where: { id: { in: closeIds } },
+            data: { status: "DONE" },
+          })
+        }
+        if (backlogIds.length > 0) {
+          await tx.issue.updateMany({
+            where: { id: { in: backlogIds } },
+            data: { status: "BACKLOG", sprintId: null },
+          })
         }
       }
 
@@ -248,19 +245,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Find issue by id or displayId (exclude soft-deleted)
-    let issue = await prisma.issue.findFirst({
-      where: { id: params.id, deletedAt: null },
+    // Find issue by id or displayId in a single query
+    const issue = await prisma.issue.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [{ id: params.id }, { displayId: params.id }],
+      },
     })
-
-    if (!issue) {
-      issue = await prisma.issue.findFirst({
-        where: {
-          displayId: params.id,
-          deletedAt: null,
-        },
-      })
-    }
 
     if (!issue) {
       return NextResponse.json({ error: "Issue not found" }, { status: 404 })

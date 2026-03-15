@@ -9,8 +9,10 @@ import { useBoardData } from '@/hooks/useBoardData'
 import { useTeams } from '@/hooks/useTeams'
 import { useUsers } from '@/hooks/useUsers'
 import { useSSE } from '@/hooks/useSSE'
+import dynamic from 'next/dynamic'
 import { KanbanBoard } from '@/components/board/KanbanBoard'
-import { ListView } from '@/components/board/ListView'
+
+const ListView = dynamic(() => import('@/components/board/ListView').then((m) => ({ default: m.ListView })))
 import { IssueWithRelations } from '@/types'
 import { cn } from '@/lib/utils'
 import { KanbanCardsLoader } from '@/components/ui/loaders'

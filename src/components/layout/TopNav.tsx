@@ -6,7 +6,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Plus, X } from 'lucide-react'
 import { NotificationBell } from './NotificationBell'
-import { IssueForm } from '@/components/issues/IssueForm'
+import dynamic from 'next/dynamic'
+
+const IssueForm = dynamic(
+  () => import('@/components/issues/IssueForm').then((m) => ({ default: m.IssueForm })),
+  { loading: () => <div className="p-8 text-sm text-gray-400 text-center">Loading form…</div> },
+)
 import { useTeams } from '@/hooks/useTeams'
 import { useUsers } from '@/hooks/useUsers'
 import { useSprints } from '@/hooks/useSprints'

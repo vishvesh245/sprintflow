@@ -8,9 +8,11 @@ import { useIssues } from '@/hooks/useIssues'
 import { useSprints } from '@/hooks/useSprints'
 import { useTeams } from '@/hooks/useTeams'
 import { IssueWithRelations } from '@/types'
+import dynamic from 'next/dynamic'
 import BacklogList from '@/components/backlog/BacklogList'
-import { KanbanBoard } from '@/components/board/KanbanBoard'
-import { ListView } from '@/components/board/ListView'
+
+const KanbanBoard = dynamic(() => import('@/components/board/KanbanBoard').then((m) => ({ default: m.KanbanBoard })))
+const ListView = dynamic(() => import('@/components/board/ListView').then((m) => ({ default: m.ListView })))
 import { LayoutGrid, List, Table2, Search } from 'lucide-react'
 import { StackedCardsLoader } from '@/components/ui/loaders'
 import { toast } from 'sonner'

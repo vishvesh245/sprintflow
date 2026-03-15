@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useSprintOverview } from '@/hooks/useSprintOverview'
 import { IssueWithRelations, Sprint } from '@/types'
+import dynamic from 'next/dynamic'
 import UnifiedSprintView from '@/components/sprint/UnifiedSprintView'
-import SprintCompleteModal from '@/components/sprint/SprintCompleteModal'
-import SprintHistorySection from '@/components/sprint/SprintHistorySection'
+
+const SprintCompleteModal = dynamic(() => import('@/components/sprint/SprintCompleteModal'))
+const SprintHistorySection = dynamic(() => import('@/components/sprint/SprintHistorySection'))
 import { Button } from '@/components/ui/button'
 import { SprintBarsLoader } from '@/components/ui/loaders'
 import { RefreshCw, CheckCircle, Plus } from 'lucide-react'

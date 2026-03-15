@@ -51,8 +51,15 @@ export async function GET(request: Request) {
       }
     }
 
+    // ── Pagination ────────────────────────────────────────────────────────
+    // Supports cursor-based pagination via ?cursor=<id>&limit=<n>.
+    // Defaults to 200 issues per page — enough for typical backlogs,
+    // prevents unbounded payload sizes as data grows.
+    const limit = Math.min(Number(searchParams.get("limit")) || 200, 500)
+    const cursor = searchParams.get("cursor")
+
     // Build a cache key from query params so different filters get separate cache entries
-    const cacheKey = `issues:${JSON.stringify(where)}`
+    const cacheKey = `issues:${JSON.stringify(where)}:${cursor || ''}:${limit}`
 
     const issues = await cached(cacheKey, 30_000, () =>
       prisma.issue.findMany({
@@ -63,10 +70,17 @@ export async function GET(request: Request) {
           sprint: { select: { id: true, name: true, status: true } },
         },
         orderBy: { createdAt: "desc" },
+        take: limit + 1, // fetch one extra to detect if there's a next page
+        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       })
     )
 
-    return NextResponse.json(issues)
+    // If we got more than `limit`, there's a next page
+    const hasMore = issues.length > limit
+    const data = hasMore ? issues.slice(0, limit) : issues
+    const nextCursor = hasMore ? data[data.length - 1].id : null
+
+    return NextResponse.json({ data, nextCursor })
   } catch (error) {
     console.error("GET /api/issues error:", error)
     return NextResponse.json(

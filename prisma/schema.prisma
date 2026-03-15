@@ -146,12 +146,14 @@ model Issue {
   notifications      Notification[]
   promotedFromDesign DesignItem?  @relation("promotedDesignItem")
 
-  @@index([teamId])
-  @@index([sprintId])
+  // Composite indexes — optimised for actual query patterns
+  @@index([sprintId, deletedAt])          // GET /api/board, sprint complete
+  @@index([parentIssueId, deletedAt, status]) // subtask cascade (every issue update)
+  @@index([teamId, deletedAt])            // board + issues with team filter
+  @@index([deletedAt, sprintId])          // GET /api/issues?backlog=true (OR query)
   @@index([assigneeId])
   @@index([reporterId])
   @@index([status])
-  @@index([deletedAt])
 }
 
 // Comment model

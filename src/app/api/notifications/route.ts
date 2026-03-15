@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       whereClause.read = false
     }
 
-    // Fetch notifications
+    // Fetch notifications (capped at 50 to prevent unbounded payloads)
     const notifications = await prisma.notification.findMany({
       where: whereClause,
       include: {
@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: 'desc' },
+      take: 50,
     })
 
     return NextResponse.json(notifications)

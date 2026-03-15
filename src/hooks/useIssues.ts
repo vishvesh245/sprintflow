@@ -38,9 +38,9 @@ export function useIssues(params: UseIssuesParams): UseIssuesReturn {
       if (!response.ok) {
         throw new Error('Failed to fetch issues')
       }
-      const data = await response.json()
-      // API returns a plain array
-      return Array.isArray(data) ? data : (data.issues || [])
+      const json = await response.json()
+      // API returns { data: [...], nextCursor } (paginated) or a plain array (legacy)
+      return Array.isArray(json) ? json : (json.data || json.issues || [])
     },
   })
 

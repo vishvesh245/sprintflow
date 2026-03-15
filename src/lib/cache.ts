@@ -53,21 +53,37 @@ export async function cached<T>(
   return data
 }
 
+/**
+ * Monotonic data version — incremented on every invalidation.
+ * SSE checks this to decide whether to push a refresh signal.
+ */
+let dataVersion = 0
+
+/** Get the current data version (for SSE polling comparison) */
+export function getDataVersion() {
+  return dataVersion
+}
+
 /** Invalidate a single cache key */
 export function invalidate(key: string) {
   store.delete(key)
+  dataVersion++
 }
 
 /** Invalidate all keys that start with a given prefix */
 export function invalidatePrefix(prefix: string) {
+  let deleted = false
   for (const key of store.keys()) {
     if (key.startsWith(prefix)) {
       store.delete(key)
+      deleted = true
     }
   }
+  if (deleted) dataVersion++
 }
 
 /** Invalidate the entire cache */
 export function invalidateAll() {
   store.clear()
+  dataVersion++
 }
