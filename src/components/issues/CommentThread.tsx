@@ -51,7 +51,7 @@ function SafeMarkdown({ text }: { text: string }) {
 function renderInlineFormatting(text: string): React.ReactNode[] {
   // Match **bold**, *italic*, `code`, and @[Name](userId) mention patterns
   const parts: React.ReactNode[] = []
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|@\[(.+?)\]\((\w+)\))/g
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|@\[(.+?)\]\(([\w-]+)\))/g
   let lastIndex = 0
   let match
 

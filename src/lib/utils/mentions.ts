@@ -5,7 +5,7 @@
  * This is unambiguous (userId is a cuid) and won't collide with markdown.
  */
 
-const MENTION_REGEX = /@\[(.+?)\]\((\w+)\)/g
+const MENTION_REGEX = /@\[(.+?)\]\(([\w-]+)\)/g
 
 /**
  * Extract unique user IDs from mention patterns in text.
