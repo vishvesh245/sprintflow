@@ -5,6 +5,7 @@ import { getTimeAgo } from '@/lib/utils'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
+import { MentionTextarea } from './MentionTextarea'
 
 interface Comment {
   id: string
@@ -48,9 +49,9 @@ function SafeMarkdown({ text }: { text: string }) {
 }
 
 function renderInlineFormatting(text: string): React.ReactNode[] {
-  // Match **bold**, *italic*, and `code` patterns
+  // Match **bold**, *italic*, `code`, and @[Name](userId) mention patterns
   const parts: React.ReactNode[] = []
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/g
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|@\[(.+?)\]\((\w+)\))/g
   let lastIndex = 0
   let match
 
@@ -72,6 +73,16 @@ function renderInlineFormatting(text: string): React.ReactNode[] {
         <code key={match.index} className="rounded bg-gray-100 px-1 py-0.5 text-xs font-mono">
           {match[4]}
         </code>
+      )
+    } else if (match[5] && match[6]) {
+      // @[DisplayName](userId) mention
+      parts.push(
+        <span
+          key={match.index}
+          className="inline-flex items-center rounded bg-blue-100 px-1 py-0.5 text-xs font-medium text-blue-800"
+        >
+          @{match[5]}
+        </span>
       )
     }
 
@@ -198,9 +209,9 @@ export function CommentThread({
 
               {editingId === comment.id ? (
                 <div className="mt-2 space-y-2">
-                  <textarea
+                  <MentionTextarea
                     value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
+                    onChange={setEditText}
                     className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
                     rows={3}
                   />
@@ -234,10 +245,10 @@ export function CommentThread({
       {/* Add comment form */}
       <div className="border-t border-gray-200 pt-4">
         <div className="space-y-3">
-          <textarea
+          <MentionTextarea
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
+            onChange={setNewComment}
+            placeholder="Add a comment... (type @ to mention someone)"
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             rows={4}
           />

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createNotification } from '@/lib/utils/notifications'
+import { parseMentionedUserIds } from '@/lib/utils/mentions'
 import { z } from 'zod'
 
 const createCommentSchema = z.object({
@@ -68,6 +69,7 @@ export async function POST(
       where: { id: issueId },
       select: {
         id: true,
+        title: true,
         reporterId: true,
         assigneeId: true,
       },
@@ -122,6 +124,33 @@ export async function POST(
         message: `${session.user.name || session.user.email} added a comment`,
         issueId,
       })
+    }
+
+    // Parse @mentions and send notifications to mentioned users
+    const mentionedUserIds = parseMentionedUserIds(validatedData.body)
+    // Remove self-mentions and users already notified as reporter/assignee
+    const newMentionIds = mentionedUserIds.filter(
+      (id) => id !== session.user.id && !notificationUserIds.has(id)
+    )
+
+    if (newMentionIds.length > 0) {
+      const mentionedUsers = await prisma.user.findMany({
+        where: {
+          id: { in: newMentionIds },
+          notifyOnComment: true,
+        },
+        select: { id: true },
+      })
+
+      const authorName = session.user.name || session.user.email
+      for (const user of mentionedUsers) {
+        await createNotification(prisma, {
+          userId: user.id,
+          type: 'COMMENT_ADDED',
+          message: `${authorName} mentioned you in a comment on "${issue.title}"`,
+          issueId,
+        })
+      }
     }
 
     return NextResponse.json(comment, { status: 201 })
