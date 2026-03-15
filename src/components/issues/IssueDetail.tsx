@@ -295,11 +295,7 @@ export function IssueDetail({
           ) : issue.attachments?.length > 0 ? (
             <AttachmentList attachments={issue.attachments} />
           ) : (
-            <FileUpload
-              entityType="issue"
-              entityId={issue.id}
-              existingAttachments={[]}
-            />
+            <p className="text-sm text-gray-400 italic">No attachments</p>
           )}
         </div>
 
