@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { getTimeAgo } from '@/lib/utils'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
+import { Paperclip, X, Loader2 } from 'lucide-react'
 import { MentionTextarea } from './MentionTextarea'
 import { AttachmentList, type AttachmentItem } from '@/components/ui/AttachmentList'
 import { FileUpload } from '@/components/ui/FileUpload'
 import { useAttachments } from '@/hooks/useAttachments'
+import { isAllowedMimeType, MAX_FILE_SIZE, formatFileSize, isImageType } from '@/lib/validations/attachment'
 
 interface Comment {
   id: string
@@ -109,24 +111,70 @@ export function CommentThread({
   onDeleteComment,
 }: CommentThreadProps) {
   const { data: session } = useSession()
+  const { upload, remove } = useAttachments()
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [editSaving, setEditSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [lastCommentId, setLastCommentId] = useState<string | null>(
-    comments.length > 0 ? comments[comments.length - 1].id : null
-  )
+
+  // Staged files for new comment (selected before posting)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    const valid: File[] = []
+
+    for (const file of files) {
+      if (!isAllowedMimeType(file.type)) {
+        toast.error(`${file.name} — Only images and documents are allowed`)
+        continue
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} exceeds the ${formatFileSize(MAX_FILE_SIZE)} limit`)
+        continue
+      }
+      valid.push(file)
+    }
+
+    setPendingFiles((prev) => [...prev, ...valid])
+    // Reset input so the same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [])
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return
+    if (!newComment.trim() && pendingFiles.length === 0) return
 
     setIsSubmitting(true)
     try {
-      const result = await onAddComment(newComment)
+      const result = await onAddComment(newComment.trim() || '(attachment)')
       setNewComment('')
-      if (result?.id) setLastCommentId(result.id)
+
+      // Upload staged files to the newly created comment
+      if (result?.id && pendingFiles.length > 0) {
+        let uploadErrors = 0
+        for (const file of pendingFiles) {
+          try {
+            await upload.mutateAsync({
+              file,
+              entityType: 'comment',
+              entityId: result.id,
+            })
+          } catch {
+            uploadErrors++
+          }
+        }
+        if (uploadErrors > 0) {
+          toast.error(`${uploadErrors} file(s) failed to upload`)
+        }
+      }
+      setPendingFiles([])
     } catch {
       toast.error('Failed to post comment')
     } finally {
@@ -148,7 +196,7 @@ export function CommentThread({
     }
   }
 
-  const handleDelete = async (commentId: string) => {
+  const handleDeleteComment = async (commentId: string) => {
     if (!onDeleteComment) return
     setDeletingId(commentId)
     try {
@@ -159,6 +207,17 @@ export function CommentThread({
       setDeletingId(null)
     }
   }
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      await remove.mutateAsync(attachmentId)
+    } catch {
+      // Error toast handled by the hook
+    }
+  }
+
+  const isOwnComment = (comment: Comment) =>
+    session?.user.id === comment.author.id
 
   return (
     <div className="space-y-6">
@@ -193,8 +252,8 @@ export function CommentThread({
                     {getTimeAgo(comment.createdAt)}
                   </p>
                 </div>
-                {session?.user.id === comment.author.id && (
-                  <div className="flex gap-2">
+                {isOwnComment(comment) && (
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
                         setEditingId(comment.id)
@@ -205,7 +264,7 @@ export function CommentThread({
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(comment.id)}
+                      onClick={() => handleDeleteComment(comment.id)}
                       disabled={deletingId === comment.id}
                       className="text-xs text-gray-500 hover:text-red-600 disabled:opacity-50"
                     >
@@ -223,6 +282,21 @@ export function CommentThread({
                     className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
                     rows={3}
                   />
+                  {/* Attachments in edit mode — can add/remove */}
+                  <div className="space-y-2">
+                    {comment.attachments && comment.attachments.length > 0 && (
+                      <AttachmentList
+                        attachments={comment.attachments}
+                        onDelete={handleDeleteAttachment}
+                        compact
+                      />
+                    )}
+                    <FileUpload
+                      entityType="comment"
+                      entityId={comment.id}
+                      compact
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleSaveEdit(comment.id)}
@@ -247,7 +321,11 @@ export function CommentThread({
                   </div>
                   {comment.attachments && comment.attachments.length > 0 && (
                     <div className="mt-2">
-                      <AttachmentList attachments={comment.attachments} compact />
+                      <AttachmentList
+                        attachments={comment.attachments}
+                        onDelete={isOwnComment(comment) ? handleDeleteAttachment : undefined}
+                        compact
+                      />
                     </div>
                   )}
                 </div>
@@ -267,32 +345,79 @@ export function CommentThread({
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             rows={4}
           />
+
+          {/* Staged pending files */}
+          {pendingFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {pendingFiles.map((file, index) => (
+                <div
+                  key={`${file.name}-${index}`}
+                  className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1"
+                >
+                  {isImageType(file.type) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="h-6 w-6 rounded object-cover"
+                    />
+                  ) : (
+                    <Paperclip className="h-3.5 w-3.5 text-gray-400" />
+                  )}
+                  <span className="max-w-[120px] truncate text-xs text-gray-600">
+                    {file.name}
+                  </span>
+                  <button
+                    onClick={() => removePendingFile(index)}
+                    className="ml-0.5 rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {lastCommentId && (
-                <div className="flex items-center gap-1">
-                  <FileUpload
-                    entityType="comment"
-                    entityId={lastCommentId}
-                    compact
-                  />
-                  <span className="text-xs text-gray-400">to last comment</span>
-                </div>
-              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+                accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                title="Attach files to this comment"
+              >
+                <Paperclip className="h-4 w-4" />
+                <span className="text-xs">Attach</span>
+              </button>
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setNewComment('')}
+                onClick={() => { setNewComment(''); setPendingFiles([]) }}
                 className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddComment}
-                disabled={isSubmitting || !newComment.trim()}
+                disabled={isSubmitting || (!newComment.trim() && pendingFiles.length === 0)}
                 className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {isSubmitting ? 'Posting...' : 'Post comment'}
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Posting...
+                  </span>
+                ) : (
+                  `Post comment${pendingFiles.length > 0 ? ` (${pendingFiles.length} file${pendingFiles.length > 1 ? 's' : ''})` : ''}`
+                )}
               </button>
             </div>
           </div>

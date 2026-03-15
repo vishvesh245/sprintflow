@@ -87,7 +87,9 @@ export async function PATCH(
         assignee: { select: { id: true, name: true, email: true, image: true } },
         visualDesigner: { select: { id: true, name: true, email: true, image: true } },
         team: { select: { id: true, name: true, prefix: true, color: true } },
-        promotedTo: { select: { id: true, displayId: true, title: true } },
+        promotedTo: { select: { id: true, displayId: true, title: true, status: true } },
+        todos: { orderBy: { order: 'asc' } },
+        attachments: { orderBy: { createdAt: 'asc' } },
       },
     })
 
