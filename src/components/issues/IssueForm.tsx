@@ -104,11 +104,11 @@ export function IssueForm({
     }
     setLoadingParentTasks(true)
     Promise.all([
-      fetch('/api/issues?type=TASK').then((r) => (r.ok ? r.json() : [])),
-      fetch('/api/issues?type=STORY').then((r) => (r.ok ? r.json() : [])),
+      fetch('/api/issues?type=TASK').then((r) => (r.ok ? r.json() : { data: [] })),
+      fetch('/api/issues?type=STORY').then((r) => (r.ok ? r.json() : { data: [] })),
     ])
-      .then(([tasks, stories]) => {
-        const combined: ParentTask[] = [...tasks, ...stories].map((i: any) => ({
+      .then(([tasksRes, storiesRes]) => {
+        const combined: ParentTask[] = [...(tasksRes.data || []), ...(storiesRes.data || [])].map((i: any) => ({
           id: i.id,
           displayId: i.displayId,
           title: i.title,
