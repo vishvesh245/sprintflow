@@ -128,6 +128,7 @@ function ParentTaskCombobox({
       setHighlightIdx((prev) => (prev < totalItems - 1 ? prev + 1 : 0))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
+      setOpen(true)
       setHighlightIdx((prev) => (prev > 0 ? prev - 1 : totalItems - 1))
     } else if (e.key === 'Enter') {
       e.preventDefault()
@@ -177,8 +178,10 @@ function ParentTaskCombobox({
                 setOpen(true)
               }}
               onFocus={() => {
-                setQuery('')
-                setOpen(true)
+                if (!selectedTask) {
+                  setQuery('')
+                  setOpen(true)
+                }
               }}
               onKeyDown={handleKeyDown}
               className="w-full rounded border border-blue-200 bg-white py-2 pl-3 pr-16 text-sm focus:border-blue-500 focus:outline-none"
@@ -475,10 +478,10 @@ export function IssueForm({
               : 'Search or select a linked task...'
           }
           onChange={(id) =>
-            setFormData(
-              formData.type === 'SUBTASK'
-                ? { ...formData, parentIssueId: id }
-                : { ...formData, linkedTaskId: id }
+            setFormData((prev) =>
+              prev.type === 'SUBTASK'
+                ? { ...prev, parentIssueId: id }
+                : { ...prev, linkedTaskId: id }
             )
           }
         />
