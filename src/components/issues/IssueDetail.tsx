@@ -7,6 +7,9 @@ import { Edit2, X, Check, Plus, ChevronDown, ChevronRight, GitBranch, Trash2, Sh
 import { formatDate, getTimeAgo, getTeamColor, cn } from '@/lib/utils'
 import { getPriorityBadge, getStatusBadge } from '@/lib/colors'
 import { StatusBadge } from './StatusBadge'
+import { FileUpload } from '@/components/ui/FileUpload'
+import { AttachmentList } from '@/components/ui/AttachmentList'
+import { useAttachments } from '@/hooks/useAttachments'
 
 interface Assignee {
   id: string
@@ -275,6 +278,28 @@ export function IssueDetail({
                 <span className="italic text-gray-400">No description</span>
               )}
             </div>
+          )}
+        </div>
+
+        {/* ── Attachments Section ── */}
+        <div>
+          <h2 className="mb-2 text-sm font-semibold text-gray-700">
+            Attachments{issue.attachments?.length > 0 && ` (${issue.attachments.length})`}
+          </h2>
+          {editMode ? (
+            <FileUpload
+              entityType="issue"
+              entityId={issue.id}
+              existingAttachments={issue.attachments || []}
+            />
+          ) : issue.attachments?.length > 0 ? (
+            <AttachmentList attachments={issue.attachments} />
+          ) : (
+            <FileUpload
+              entityType="issue"
+              entityId={issue.id}
+              existingAttachments={[]}
+            />
           )}
         </div>
 

@@ -24,6 +24,8 @@ import { useUsers } from '@/hooks/useUsers'
 import { PromoteToBacklogModal } from '@/components/design-board/PromoteToBacklogModal'
 import { DesignItemChecklist } from '@/components/design-board/DesignItemChecklist'
 import { toast } from 'sonner'
+import { FileUpload } from '@/components/ui/FileUpload'
+import { AttachmentList } from '@/components/ui/AttachmentList'
 
 const STATUS_OPTIONS = ['DRAFT', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'] as const
 
@@ -449,6 +451,29 @@ export default function DesignItemDetailPage() {
                     </span>
                   )}
                 </div>
+              )}
+            </div>
+
+            {/* Attachments */}
+            <div>
+              <h2 className="mb-2 text-sm font-semibold text-gray-700">
+                Attachments
+              </h2>
+              {editMode ? (
+                <FileUpload
+                  entityType="designItem"
+                  entityId={itemId}
+                  existingAttachments={item.attachments || []}
+                  onUploadComplete={() =>
+                    queryClient.invalidateQueries({ queryKey: ['design-item', itemId] })
+                  }
+                />
+              ) : (item.attachments && item.attachments.length > 0) ? (
+                <AttachmentList
+                  attachments={item.attachments}
+                />
+              ) : (
+                <p className="text-sm text-gray-400 italic">No attachments</p>
               )}
             </div>
 

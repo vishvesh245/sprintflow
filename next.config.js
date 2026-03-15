@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [{ hostname: 'lh3.googleusercontent.com' }],
+    remotePatterns: [
+      { hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: '*.supabase.co' },
+    ],
   },
   async headers() {
     return [
@@ -22,7 +25,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' lh3.googleusercontent.com data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';",
+              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' lh3.googleusercontent.com *.supabase.co data: blob:; font-src 'self'; connect-src 'self' *.supabase.co; media-src 'self' *.supabase.co; frame-ancestors 'none';",
           },
         ],
       },

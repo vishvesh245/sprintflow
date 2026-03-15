@@ -319,6 +319,7 @@ function SlideOverContent({
     queryClient.setQueryData(['issue', issueId], (prev: any) =>
       prev ? { ...prev, comments: [...(prev.comments || []), comment] } : prev,
     )
+    return comment as { id: string }
   }
 
   // ── Render ──

@@ -6,6 +6,9 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import { MentionTextarea } from './MentionTextarea'
+import { AttachmentList, type AttachmentItem } from '@/components/ui/AttachmentList'
+import { FileUpload } from '@/components/ui/FileUpload'
+import { useAttachments } from '@/hooks/useAttachments'
 
 interface Comment {
   id: string
@@ -18,12 +21,13 @@ interface Comment {
     email: string
     image: string | null
   }
+  attachments?: AttachmentItem[]
 }
 
 interface CommentThreadProps {
   issueId: string
   comments: Comment[]
-  onAddComment: (body: string) => Promise<void>
+  onAddComment: (body: string) => Promise<{ id: string } | void>
   onEditComment?: (commentId: string, body: string) => Promise<void>
   onDeleteComment?: (commentId: string) => Promise<void>
 }
@@ -111,14 +115,18 @@ export function CommentThread({
   const [editText, setEditText] = useState('')
   const [editSaving, setEditSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [lastCommentId, setLastCommentId] = useState<string | null>(
+    comments.length > 0 ? comments[comments.length - 1].id : null
+  )
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return
 
     setIsSubmitting(true)
     try {
-      await onAddComment(newComment)
+      const result = await onAddComment(newComment)
       setNewComment('')
+      if (result?.id) setLastCommentId(result.id)
     } catch {
       toast.error('Failed to post comment')
     } finally {
@@ -233,8 +241,15 @@ export function CommentThread({
                   </div>
                 </div>
               ) : (
-                <div className="mt-2 text-sm text-gray-700">
-                  <SafeMarkdown text={comment.body} />
+                <div className="mt-2">
+                  <div className="text-sm text-gray-700">
+                    <SafeMarkdown text={comment.body} />
+                  </div>
+                  {comment.attachments && comment.attachments.length > 0 && (
+                    <div className="mt-2">
+                      <AttachmentList attachments={comment.attachments} compact />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -252,20 +267,34 @@ export function CommentThread({
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             rows={4}
           />
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setNewComment('')}
-              className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleAddComment}
-              disabled={isSubmitting || !newComment.trim()}
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Posting...' : 'Post comment'}
-            </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {lastCommentId && (
+                <div className="flex items-center gap-1">
+                  <FileUpload
+                    entityType="comment"
+                    entityId={lastCommentId}
+                    compact
+                  />
+                  <span className="text-xs text-gray-400">to last comment</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setNewComment('')}
+                className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddComment}
+                disabled={isSubmitting || !newComment.trim()}
+                className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Posting...' : 'Post comment'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

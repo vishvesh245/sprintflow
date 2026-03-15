@@ -33,6 +33,15 @@ export interface DesignItem {
   visualDesigner: DesignItemAssignee | null
   team: DesignItemTeam
   promotedTo: { id: string; displayId: string; title: string } | null
+  attachments?: Array<{
+    id: string
+    filename: string
+    storagePath: string
+    contentType: string
+    size: number
+    uploaderId?: string
+    createdAt?: string
+  }>
 }
 
 interface UseDesignItemsParams {

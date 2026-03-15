@@ -19,9 +19,17 @@ const issueDetailInclude = {
   comments: {
     include: {
       author: { select: { id: true, name: true, email: true, image: true } },
+      attachments: {
+        select: { id: true, filename: true, storagePath: true, contentType: true, size: true, createdAt: true },
+        orderBy: { createdAt: "asc" as const },
+      },
     },
     orderBy: { createdAt: "asc" as const },
     take: 100, // cap to prevent unbounded payloads on issues with many comments
+  },
+  attachments: {
+    select: { id: true, filename: true, storagePath: true, contentType: true, size: true, uploaderId: true, createdAt: true },
+    orderBy: { createdAt: "asc" as const },
   },
   subtasks: {
     where: { deletedAt: null },

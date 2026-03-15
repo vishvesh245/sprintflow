@@ -34,6 +34,10 @@ export async function GET(
             image: true,
           },
         },
+        attachments: {
+          select: { id: true, filename: true, storagePath: true, contentType: true, size: true, createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy: { createdAt: 'asc' },
     })

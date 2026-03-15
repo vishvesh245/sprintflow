@@ -53,6 +53,7 @@ model User {
   sessions           Session[]
   designItems        DesignItem[]         @relation("designItemAssignee")
   visualDesignItems  DesignItem[]         @relation("designItemVisualDesigner")
+  attachments        Attachment[]
 
   @@index([teamId])
   @@index([email])
@@ -144,6 +145,7 @@ model Issue {
   subtasks       Issue[]           @relation("subtasks")
   comments           Comment[]
   notifications      Notification[]
+  attachments        Attachment[]
   promotedFromDesign DesignItem?  @relation("promotedDesignItem")
 
   // Composite indexes — optimised for actual query patterns
@@ -165,8 +167,9 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  issue  Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  author User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  issue       Issue        @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 
   @@index([issueId])
   @@index([authorId])
@@ -212,6 +215,7 @@ model DesignItem {
   team           Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   promotedTo     Issue? @relation("promotedDesignItem", fields: [promotedToIssueId], references: [id], onDelete: SetNull)
   todos          DesignTodo[]
+  attachments    Attachment[]
 
   @@index([teamId])
   @@index([assigneeId])
@@ -231,6 +235,32 @@ model DesignTodo {
   designItem DesignItem @relation(fields: [designItemId], references: [id], onDelete: Cascade)
 
   @@index([designItemId])
+}
+
+// Attachment model (polymorphic — exactly one of issueId/designItemId/commentId is set)
+model Attachment {
+  id           String      @id @default(cuid())
+  filename     String
+  storagePath  String
+  contentType  String
+  size         Int
+  uploaderId   String
+
+  issueId      String?
+  designItemId String?
+  commentId    String?
+
+  createdAt    DateTime    @default(now())
+
+  uploader     User        @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  issue        Issue?      @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  designItem   DesignItem? @relation(fields: [designItemId], references: [id], onDelete: Cascade)
+  comment      Comment?    @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@index([designItemId])
+  @@index([commentId])
+  @@index([uploaderId])
 }
 
 // Enums
