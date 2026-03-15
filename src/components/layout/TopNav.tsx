@@ -26,7 +26,7 @@ const pageNames: Record<string, string> = {
 }
 
 const pageSubtitles: Record<string, string> = {
-  '/backlog': 'Manage and plan issues for upcoming sprints',
+  '/backlog': 'Manage and plan tickets for upcoming sprints',
   '/settings': 'Admin panel — manage user roles and permissions',
   '/profile': 'Manage your personal settings and preferences',
   '/design-board': 'Manage and track design work across your team',
@@ -58,7 +58,7 @@ export function TopNav() {
 
   // Dynamic pages like /issues/[id] won't match the static map — derive a label
   const pageName = pageNames[pathname]
-    ?? (pathname.startsWith('/issues/') ? 'Issue Detail'
+    ?? (pathname.startsWith('/issues/') ? 'Ticket Detail'
       : pathname.startsWith('/design-board/') ? 'Design Board'
       : 'Dashboard')
   const pageSubtitle = pageSubtitles[pathname]
@@ -155,13 +155,13 @@ export function TopNav() {
       {successIssue && (
         <div className="fixed top-4 right-4 z-[100] flex items-center gap-3 rounded-lg bg-green-600 px-4 py-3 text-white shadow-lg">
           <span className="text-sm font-medium">
-            ✓ Issue <span className="font-bold">{successIssue.displayId}</span> created!
+            ✓ Ticket <span className="font-bold">{successIssue.displayId}</span> created!
           </span>
           <a
             href={`/issues/${successIssue.id}`}
             className="text-sm underline hover:text-green-100"
           >
-            View issue
+            View ticket
           </a>
           <span className="text-xs text-green-200">
             {successIssue.sprintId ? '→ On the Board' : '→ In Backlog'}
@@ -181,14 +181,14 @@ export function TopNav() {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {/* Create Issue Button — hidden on Design Board (has its own "Create Design Item" CTA) */}
+          {/* Create Ticket Button — hidden on Design Board (has its own "Create Design Ticket" CTA) */}
           {!pathname.startsWith('/design-board') && (
             <button
               onClick={handleOpenCreate}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 font-medium text-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>Create Issue</span>
+              <span>Create Ticket</span>
             </button>
           )}
 
@@ -246,7 +246,7 @@ export function TopNav() {
         </div>
       </div>
 
-      {/* Create Issue Modal */}
+      {/* Create Ticket Modal */}
       {showCreateIssue && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
@@ -257,7 +257,7 @@ export function TopNav() {
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900">Create Issue</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Create Ticket</h2>
               <button
                 onClick={handleCloseCreate}
                 className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"

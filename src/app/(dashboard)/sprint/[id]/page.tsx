@@ -293,14 +293,14 @@ export default function SprintDetailPage() {
                   href="/backlog"
                   className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                 >
-                  + Add issues from Backlog
+                  + Add tickets from Backlog
                 </Link>
                 {sprint.status === 'PLANNING' && (
                   <button
                     onClick={handleStartSprint}
                     disabled={startingSprint || issues.length === 0}
                     className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
-                    title={issues.length === 0 ? 'Add issues before starting the sprint' : undefined}
+                    title={issues.length === 0 ? 'Add tickets before starting the sprint' : undefined}
                   >
                     <Play className="h-3.5 w-3.5" />
                     {startingSprint ? 'Starting…' : 'Start Sprint'}
@@ -475,14 +475,14 @@ export default function SprintDetailPage() {
             {/* Empty state */}
             {filtered.length === 0 && (
               <div className="py-10 text-center text-sm text-gray-400 italic">
-                {issues.length === 0 ? 'No issues in this sprint' : 'No issues match your filters'}
+                {issues.length === 0 ? 'No tickets in this sprint' : 'No tickets match your filters'}
               </div>
             )}
           </div>
 
           {/* ── Results summary ── */}
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Showing {filtered.length} of {issues.length} issues</span>
+            <span>Showing {filtered.length} of {issues.length} tickets</span>
             {isCompleted && issues.length > 0 && (
               <span className="font-medium text-gray-700">
                 {doneCount} completed · {issues.length - doneCount} not completed

@@ -77,7 +77,7 @@ export default function SprintPlanningPanel({ sprint, allIssues }: SprintPlannin
             <span className="font-medium">{new Date(sprint.endDate).toLocaleDateString()}</span>
           </div>
           <div className="flex justify-between pt-2 border-t border-gray-200">
-            <span className="text-gray-600">Total Issues:</span>
+            <span className="text-gray-600">Total Tickets:</span>
             <span className="font-semibold">{sprintIssues.length}</span>
           </div>
           <div className="flex justify-between">
@@ -90,7 +90,7 @@ export default function SprintPlanningPanel({ sprint, allIssues }: SprintPlannin
       {/* Team Breakdown */}
       {sprintIssues.length > 0 && (
         <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <h4 className="font-semibold text-gray-900 mb-3 text-sm">Issues by Team</h4>
+          <h4 className="font-semibold text-gray-900 mb-3 text-sm">Tickets by Team</h4>
           <div className="space-y-2">
             {Object.entries(issuesByTeam).map(([team, teamIssues]) => (
               teamIssues.length > 0 && (
@@ -120,7 +120,7 @@ export default function SprintPlanningPanel({ sprint, allIssues }: SprintPlannin
               <AlertDialogHeader>
                 <AlertDialogTitle>Start Sprint?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Start the sprint <strong>{sprint.name}</strong> with {sprintIssues.length} issues and {totalStoryPoints} story points?
+                  Start the sprint <strong>{sprint.name}</strong> with {sprintIssues.length} tickets and {totalStoryPoints} story points?
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="flex justify-end gap-3">
@@ -135,8 +135,8 @@ export default function SprintPlanningPanel({ sprint, allIssues }: SprintPlannin
       {/* Empty State */}
       {sprintIssues.length === 0 && (
         <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-          <p className="text-sm text-gray-600">No issues in this sprint yet</p>
-          <p className="text-xs text-gray-500 mt-1">Add issues from the backlog to plan your sprint</p>
+          <p className="text-sm text-gray-600">No tickets in this sprint yet</p>
+          <p className="text-xs text-gray-500 mt-1">Add tickets from the backlog to plan your sprint</p>
         </div>
       )}
     </div>

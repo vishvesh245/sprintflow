@@ -309,7 +309,7 @@ export default function DesignBoardPage() {
     }
 
     setShowCreateModal(false)
-    toast.success('Design item created')
+    toast.success('Design ticket created')
     queryClient.invalidateQueries({ queryKey: ['design-items'] })
   }
 
@@ -341,7 +341,7 @@ export default function DesignBoardPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium text-sm"
             >
               <Plus className="w-4 h-4" />
-              Create Design Item
+              Create Design Ticket
             </button>
 
             {/* View toggle — matches dashboard blue */}
@@ -481,7 +481,7 @@ export default function DesignBoardPage() {
           {/* List view */}
           <div className={viewMode === 'list' ? 'flex flex-col flex-1 min-h-0' : 'hidden'}>
             {filteredItems.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">No design items found.</div>
+              <div className="text-center py-12 text-gray-500">No design tickets found.</div>
             ) : (
               <div className="overflow-auto rounded-lg border border-gray-200">
                 <table className="w-full text-sm">
@@ -572,7 +572,7 @@ export default function DesignBoardPage() {
         >
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900">Create Design Item</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Create Design Ticket</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"

@@ -61,7 +61,7 @@ export function KanbanColumn({
         >
           {issues.length === 0 ? (
             <div className="flex items-center justify-center h-32 text-gray-400">
-              <p className="text-sm">No issues</p>
+              <p className="text-sm">No tickets</p>
             </div>
           ) : (
             issues.map((issue) => (

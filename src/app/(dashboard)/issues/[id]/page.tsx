@@ -162,7 +162,7 @@ export default function IssueDetailPage() {
 
   // ── Render ────────────────────────────────────────────────────
   if (initialLoading) {
-    return <SpinArcLoader message="Loading issue..." />
+    return <SpinArcLoader message="Loading ticket..." />
   }
 
   if (error || !issue) {
@@ -176,7 +176,7 @@ export default function IssueDetailPage() {
           Back
         </button>
         <div className="flex h-64 items-center justify-center">
-          <p className="text-red-600">{error || 'Issue not found'}</p>
+          <p className="text-red-600">{error || 'Ticket not found'}</p>
         </div>
       </div>
     )

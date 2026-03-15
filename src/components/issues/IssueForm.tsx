@@ -174,7 +174,7 @@ export function IssueForm({
           className={`mt-1 w-full rounded border ${
             errors.title ? 'border-red-500' : 'border-gray-300'
           } px-3 py-2 text-sm focus:border-blue-500 focus:outline-none`}
-          placeholder="Issue title"
+          placeholder="Ticket title"
         />
         {errors.title && <p className="mt-1 text-xs text-red-600">{errors.title}</p>}
       </div>
@@ -186,7 +186,7 @@ export function IssueForm({
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          placeholder="Issue description"
+          placeholder="Ticket description"
           rows={3}
         />
       </div>
@@ -349,7 +349,7 @@ export function IssueForm({
           disabled={isSubmitting}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving...' : isEditing ? 'Update Issue' : 'Create Issue'}
+          {isSubmitting ? 'Saving...' : isEditing ? 'Update Ticket' : 'Create Ticket'}
         </button>
       </div>
     </form>

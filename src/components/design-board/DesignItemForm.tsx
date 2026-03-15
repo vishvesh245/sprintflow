@@ -103,7 +103,7 @@ export function DesignItemForm({
           className={`mt-1 w-full rounded border ${
             errors.title ? 'border-red-500' : 'border-gray-300'
           } px-3 py-2 text-sm focus:border-blue-500 focus:outline-none`}
-          placeholder="Design item title"
+          placeholder="Design ticket title"
         />
         {errors.title && <p className="mt-1 text-xs text-red-600">{errors.title}</p>}
       </div>
@@ -266,7 +266,7 @@ export function DesignItemForm({
           disabled={isSubmitting}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving...' : isEditing ? 'Update' : 'Create Design Item'}
+          {isSubmitting ? 'Saving...' : isEditing ? 'Update' : 'Create Design Ticket'}
         </button>
       </div>
     </form>

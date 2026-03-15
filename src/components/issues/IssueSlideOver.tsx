@@ -163,7 +163,7 @@ export function IssueSlideOver() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Issue detail"
+        aria-label="Ticket detail"
         className={cn(
           // Floating card: inset 12px from top/bottom/right, rounded corners
           'fixed top-3 bottom-3 right-3 z-50 w-full max-w-4xl',
@@ -226,7 +226,7 @@ function SlideOverContent({
     const res = await fetch(`/api/issues/${issueId}`, { method: 'DELETE' })
     if (!res.ok) {
       const data = await res.json()
-      throw new Error(data.error || 'Failed to delete issue')
+      throw new Error(data.error || 'Failed to delete ticket')
     }
     queryClient.removeQueries({ queryKey: ['issue', issueId] })
     invalidateIssueCaches(queryClient)
@@ -257,7 +257,7 @@ function SlideOverContent({
 
     if (!res.ok) {
       const data = await res.json()
-      throw new Error(data.error || 'Failed to update issue')
+      throw new Error(data.error || 'Failed to update ticket')
     }
 
     const updatedIssue = await res.json()
@@ -373,7 +373,7 @@ function SlideOverContent({
           <div className="flex flex-col items-center justify-center h-64 gap-4">
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
               <p className="text-red-600 text-sm font-medium">
-                {error || 'Issue not found'}
+                {error || 'Ticket not found'}
               </p>
             </div>
             <button

@@ -94,7 +94,7 @@ export function ListView({ issues }: ListViewProps) {
 
         <div className="ml-auto flex items-center gap-3">
           <span className="text-xs text-gray-400">
-            {filtered.length} of {issues.length} issue{issues.length !== 1 ? 's' : ''}
+            {filtered.length} of {issues.length} ticket{issues.length !== 1 ? 's' : ''}
           </span>
           {activeFilters && (
             <button
@@ -246,7 +246,7 @@ export function ListView({ issues }: ListViewProps) {
         {filtered.length === 0 && (
           <div className="py-16 text-center">
             <p className="text-sm text-gray-400">
-              {issues.length === 0 ? 'No issues in this sprint' : 'No issues match your filters'}
+              {issues.length === 0 ? 'No tickets in this sprint' : 'No tickets match your filters'}
             </p>
           </div>
         )}
