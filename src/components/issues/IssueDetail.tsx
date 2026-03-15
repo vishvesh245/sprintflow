@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Edit2, X, Check, Plus, ChevronDown, ChevronRight, GitBranch, Trash2 } from 'lucide-react'
+import { Edit2, X, Check, Plus, ChevronDown, ChevronRight, GitBranch, Trash2, Share2, CheckCircle2 } from 'lucide-react'
 import { formatDate, getTimeAgo, getTeamColor, cn } from '@/lib/utils'
 import { getPriorityBadge, getStatusBadge } from '@/lib/colors'
 import { StatusBadge } from './StatusBadge'
@@ -76,6 +76,15 @@ export function IssueDetail({
   // Delete state
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  // Share / copy link
+  const [copied, setCopied] = useState(false)
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/issues/${issue.id}`
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // Subtasks panel
   const [subtasksExpanded, setSubtasksExpanded] = useState(true)
@@ -186,6 +195,18 @@ export function IssueDetail({
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
+                  {/* Share — copy link to clipboard */}
+                  <button
+                    onClick={handleCopyLink}
+                    title={copied ? 'Copied!' : 'Copy link'}
+                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      copied
+                        ? 'border-green-200 text-green-600 bg-green-50'
+                        : 'border-gray-200 text-gray-400 hover:border-blue-200 hover:text-blue-500 hover:bg-blue-50'
+                    }`}
+                  >
+                    {copied ? <CheckCircle2 className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                  </button>
                   {/* Delete — only shown if caller provides onDelete */}
                   {onDelete && (
                     <button
