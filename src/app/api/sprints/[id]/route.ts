@@ -37,12 +37,7 @@ export async function GET(
     return NextResponse.json(sprint)
   } catch (error) {
     console.error("GET /api/sprints/[id] error:", error)
-    const body: Record<string, unknown> = { error: "Failed to fetch sprint" }
-    if (process.env.NODE_ENV === "development") {
-      body.debug = error instanceof Error ? error.message : String(error)
-      body.stack = error instanceof Error ? (error.stack ?? "").split("\n").slice(0, 4).join(" | ") : undefined
-    }
-    return NextResponse.json(body, { status: 500 })
+    return NextResponse.json({ error: "Failed to fetch sprint" }, { status: 500 })
   }
 }
 

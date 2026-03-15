@@ -65,13 +65,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("GET /api/sprints error:", error)
     return NextResponse.json(
-      {
-        error: "Failed to fetch sprints",
-        ...(process.env.NODE_ENV === "development" && {
-          debug: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack?.split("\n").slice(0, 5).join("\n") : undefined,
-        }),
-      },
+      { error: "Failed to fetch sprints" },
       { status: 500 }
     )
   }
@@ -112,13 +106,7 @@ export async function POST(request: Request) {
     }
     console.error("POST /api/sprints error:", error)
     return NextResponse.json(
-      {
-        error: "Failed to create sprint",
-        ...(process.env.NODE_ENV === "development" && {
-          debug: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack?.split("\n").slice(0, 5).join("\n") : undefined,
-        }),
-      },
+      { error: "Failed to create sprint" },
       { status: 500 }
     )
   }

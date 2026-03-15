@@ -276,11 +276,6 @@ export async function DELETE(
     return NextResponse.json(deletedIssue)
   } catch (error) {
     console.error("DELETE /api/issues/[id] error:", error)
-    const body: Record<string, unknown> = { error: "Failed to delete issue" }
-    if (process.env.NODE_ENV === "development") {
-      body.debug = error instanceof Error ? error.message : String(error)
-      body.stack = error instanceof Error ? (error.stack ?? "").split("\n").slice(0, 4).join(" | ") : undefined
-    }
-    return NextResponse.json(body, { status: 500 })
+    return NextResponse.json({ error: "Failed to delete issue" }, { status: 500 })
   }
 }

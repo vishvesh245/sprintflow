@@ -7,6 +7,31 @@ import { authConfig } from "./auth.config"
  */
 const { auth } = NextAuth(authConfig)
 
+/* ── Simple in-memory rate limiter (Edge-compatible) ── */
+const rateLimitMap = new Map<string, { count: number; expiresAt: number }>()
+const RATE_LIMIT_WINDOW = 60_000 // 1 minute
+const RATE_LIMIT_MAX = 100 // 100 requests per minute per IP
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+
+  // Periodic cleanup (every 500 entries)
+  if (rateLimitMap.size > 500) {
+    for (const [key, val] of rateLimitMap) {
+      if (val.expiresAt < now) rateLimitMap.delete(key)
+    }
+  }
+
+  if (!entry || entry.expiresAt < now) {
+    rateLimitMap.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW })
+    return false
+  }
+
+  entry.count += 1
+  return entry.count > RATE_LIMIT_MAX
+}
+
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
@@ -15,10 +40,20 @@ export default auth((req) => {
     pathname.startsWith("/login") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico") ||
-    pathname.endsWith(".html")
+    pathname.startsWith("/favicon.ico")
   ) {
     return
+  }
+
+  // Rate limit API routes
+  if (pathname.startsWith("/api/")) {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous"
+    if (isRateLimited(ip)) {
+      return Response.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      )
+    }
   }
 
   if (!req.auth) {
