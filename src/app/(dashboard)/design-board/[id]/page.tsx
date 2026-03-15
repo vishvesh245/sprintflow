@@ -457,7 +457,7 @@ export default function DesignItemDetailPage() {
             {/* Attachments */}
             <div>
               <h2 className="mb-2 text-sm font-semibold text-gray-700">
-                Attachments
+                Attachments{(item.attachments?.length ?? 0) > 0 && ` (${item.attachments!.length})`}
               </h2>
               {editMode ? (
                 <FileUpload

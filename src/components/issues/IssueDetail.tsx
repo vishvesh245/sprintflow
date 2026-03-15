@@ -9,7 +9,6 @@ import { getPriorityBadge, getStatusBadge } from '@/lib/colors'
 import { StatusBadge } from './StatusBadge'
 import { FileUpload } from '@/components/ui/FileUpload'
 import { AttachmentList } from '@/components/ui/AttachmentList'
-import { useAttachments } from '@/hooks/useAttachments'
 
 interface Assignee {
   id: string
