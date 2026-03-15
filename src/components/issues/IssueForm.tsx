@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface Team {
   id: string
@@ -49,6 +49,245 @@ interface IssueFormProps {
   onCancel: () => void
   initialData?: Partial<IssueFormData>
   isEditing?: boolean
+}
+
+/* ── Combobox for selecting a parent / linked task ── */
+function ParentTaskCombobox({
+  label,
+  hint,
+  tasks,
+  loading,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string
+  hint: string
+  tasks: ParentTask[]
+  loading: boolean
+  value: string
+  placeholder: string
+  onChange: (id: string) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [highlightIdx, setHighlightIdx] = useState(-1)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const selectedTask = tasks.find((t) => t.id === value) || null
+
+  // Filter tasks by search query (matches displayId or title)
+  const filtered = tasks.filter((t) => {
+    if (!query) return true
+    const q = query.toLowerCase()
+    return t.displayId.toLowerCase().includes(q) || t.title.toLowerCase().includes(q)
+  })
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Reset highlight when filtered list changes
+  useEffect(() => {
+    setHighlightIdx(-1)
+  }, [query])
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightIdx >= 0 && listRef.current) {
+      const items = listRef.current.querySelectorAll('[data-combobox-item]')
+      items[highlightIdx]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [highlightIdx])
+
+  const selectTask = useCallback(
+    (id: string) => {
+      onChange(id)
+      setQuery('')
+      setOpen(false)
+      inputRef.current?.blur()
+    },
+    [onChange]
+  )
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // total items = filtered tasks + 1 for the "none" option
+    const totalItems = filtered.length + 1
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setOpen(true)
+      setHighlightIdx((prev) => (prev < totalItems - 1 ? prev + 1 : 0))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightIdx((prev) => (prev > 0 ? prev - 1 : totalItems - 1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (!open) {
+        setOpen(true)
+        return
+      }
+      if (highlightIdx === 0) {
+        selectTask('')
+      } else if (highlightIdx > 0 && filtered[highlightIdx - 1]) {
+        selectTask(filtered[highlightIdx - 1].id)
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setQuery('')
+    }
+  }
+
+  // Display value in the input
+  const displayValue = open
+    ? query
+    : selectedTask
+      ? `[${selectedTask.displayId}] ${selectedTask.title}`
+      : ''
+
+  return (
+    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+      <label className="block text-sm font-semibold text-blue-800">{label}</label>
+      <p className="mb-2 text-xs text-blue-600">{hint}</p>
+
+      {loading ? (
+        <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600" />
+          Loading tasks…
+        </div>
+      ) : (
+        <div ref={wrapperRef} className="relative mt-1">
+          {/* Input */}
+          <div className="relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={displayValue}
+              placeholder={placeholder}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setOpen(true)
+              }}
+              onFocus={() => {
+                setQuery('')
+                setOpen(true)
+              }}
+              onKeyDown={handleKeyDown}
+              className="w-full rounded border border-blue-200 bg-white py-2 pl-3 pr-16 text-sm focus:border-blue-500 focus:outline-none"
+            />
+            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
+              {selectedTask && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange('')
+                    setQuery('')
+                    inputRef.current?.focus()
+                  }}
+                  className="rounded p-0.5 text-gray-400 hover:text-blue-600"
+                  title="Clear selection"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(!open)
+                  if (!open) inputRef.current?.focus()
+                }}
+                className="rounded p-0.5 text-gray-400 hover:text-blue-600"
+                title="Toggle list"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className={`transition-transform ${open ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Dropdown */}
+          {open && (
+            <div
+              ref={listRef}
+              className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+            >
+              {/* "None" option */}
+              <div
+                data-combobox-item
+                onClick={() => selectTask('')}
+                className={`cursor-pointer px-3 py-2 text-sm italic text-gray-500 hover:bg-blue-50 ${
+                  highlightIdx === 0 ? 'bg-blue-50' : ''
+                } ${!value ? 'font-medium text-blue-600' : ''}`}
+              >
+                — No linked task (standalone)
+              </div>
+
+              {filtered.length === 0 && query ? (
+                <div className="px-3 py-3 text-center text-xs text-gray-400">
+                  No tasks match &ldquo;{query}&rdquo;
+                </div>
+              ) : (
+                filtered.map((task, idx) => (
+                  <div
+                    key={task.id}
+                    data-combobox-item
+                    onClick={() => selectTask(task.id)}
+                    className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-blue-50 ${
+                      highlightIdx === idx + 1 ? 'bg-blue-50' : ''
+                    } ${value === task.id ? 'bg-blue-100 font-medium' : ''}`}
+                  >
+                    <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-xs font-semibold text-blue-600">
+                      {task.displayId}
+                    </span>
+                    <span className="truncate">{task.title}</span>
+                    {value === task.id && (
+                      <svg
+                        className="ml-auto shrink-0 text-blue-600"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tasks.length === 0 && !loading && (
+        <p className="mt-1 text-xs text-gray-500">
+          No tasks or stories found. Create one first if needed.
+        </p>
+      )}
+    </div>
+  )
 }
 
 export function IssueForm({
@@ -222,48 +461,27 @@ export function IssueForm({
         </div>
       </div>
 
-      {/* ── Parent / Linked Task dropdown — shown for BUG and SUBTASK ── */}
+      {/* ── Parent / Linked Task combobox — shown for BUG and SUBTASK ── */}
       {needsParentTask && (
-        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-          <label className="block text-sm font-semibold text-blue-800">
-            {parentFieldLabel}
-          </label>
-          <p className="mb-2 text-xs text-blue-600">{parentFieldHint}</p>
-          {loadingParentTasks ? (
-            <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600" />
-              Loading tasks…
-            </div>
-          ) : (
-            <select
-              value={formData.type === 'SUBTASK' ? formData.parentIssueId : formData.linkedTaskId}
-              onChange={(e) =>
-                setFormData(
-                  formData.type === 'SUBTASK'
-                    ? { ...formData, parentIssueId: e.target.value }
-                    : { ...formData, linkedTaskId: e.target.value }
-                )
-              }
-              className="mt-1 w-full rounded border border-blue-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            >
-              <option value="">
-                {formData.type === 'SUBTASK'
-                  ? '— No parent task (standalone subtask)'
-                  : '— No linked task (standalone bug)'}
-              </option>
-              {parentTasks.map((task) => (
-                <option key={task.id} value={task.id}>
-                  [{task.displayId}] {task.title}
-                </option>
-              ))}
-            </select>
-          )}
-          {parentTasks.length === 0 && !loadingParentTasks && (
-            <p className="mt-1 text-xs text-gray-500">
-              No tasks or stories found. Create one first if needed.
-            </p>
-          )}
-        </div>
+        <ParentTaskCombobox
+          label={parentFieldLabel}
+          hint={parentFieldHint}
+          tasks={parentTasks}
+          loading={loadingParentTasks}
+          value={formData.type === 'SUBTASK' ? formData.parentIssueId : formData.linkedTaskId}
+          placeholder={
+            formData.type === 'SUBTASK'
+              ? 'Search or select a parent task...'
+              : 'Search or select a linked task...'
+          }
+          onChange={(id) =>
+            setFormData(
+              formData.type === 'SUBTASK'
+                ? { ...formData, parentIssueId: id }
+                : { ...formData, linkedTaskId: id }
+            )
+          }
+        />
       )}
 
       {/* Team and Sprint */}
