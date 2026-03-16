@@ -329,7 +329,6 @@ export function CommentThread({
                     <div className="mt-2">
                       <AttachmentList
                         attachments={comment.attachments}
-                        onDelete={isOwnComment(comment) ? handleDeleteAttachment : undefined}
                         compact
                       />
                     </div>
