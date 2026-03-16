@@ -322,6 +322,45 @@ function SlideOverContent({
     return comment as { id: string }
   }
 
+  // Edit comment
+  const handleEditComment = async (commentId: string, body: string) => {
+    const res = await fetch(`/api/issues/${issueId}/comments/${commentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body }),
+    })
+    if (!res.ok) throw new Error('Failed to update comment')
+    const updated = await res.json()
+    queryClient.setQueryData(['issue', issueId], (prev: any) =>
+      prev
+        ? {
+            ...prev,
+            comments: (prev.comments || []).map((c: any) =>
+              c.id === commentId ? updated : c
+            ),
+          }
+        : prev
+    )
+  }
+
+  // Delete comment
+  const handleDeleteComment = async (commentId: string) => {
+    const res = await fetch(`/api/issues/${issueId}/comments/${commentId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) throw new Error('Failed to delete comment')
+    queryClient.setQueryData(['issue', issueId], (prev: any) =>
+      prev
+        ? {
+            ...prev,
+            comments: (prev.comments || []).filter(
+              (c: any) => c.id !== commentId
+            ),
+          }
+        : prev
+    )
+  }
+
   // ── Render ──
   return (
     <>
@@ -406,12 +445,16 @@ function SlideOverContent({
                 onUpdate={handleUpdate}
                 onAddSubtask={(title) => addSubtask(title)}
                 onDelete={handleDelete}
+                onAttachmentChange={invalidateIssue}
               />
 
               <CommentThread
                 issueId={issueId}
                 comments={issue.comments || []}
                 onAddComment={handleAddComment}
+                onEditComment={handleEditComment}
+                onDeleteComment={handleDeleteComment}
+                onAttachmentChange={invalidateIssue}
               />
             </div>
           </>
