@@ -464,9 +464,9 @@ export default function DesignItemDetailPage() {
                   entityType="designItem"
                   entityId={itemId}
                   existingAttachments={item.attachments || []}
-                  onUploadComplete={() =>
+                  onUploadComplete={() => {
                     queryClient.invalidateQueries({ queryKey: ['design-item', itemId] })
-                  }
+                  }}
                 />
               ) : (item.attachments && item.attachments.length > 0) ? (
                 <AttachmentList

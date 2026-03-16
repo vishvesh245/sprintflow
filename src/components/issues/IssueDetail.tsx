@@ -38,6 +38,7 @@ interface IssueDetailProps {
   onUpdate: (updates: Record<string, any>) => Promise<void>
   onAddSubtask?: (title: string) => Promise<void>
   onDelete?: () => Promise<void>
+  onAttachmentChange?: () => void
 }
 
 const STATUSES = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'READY_FOR_QA', 'IN_REVIEW', 'BLOCKED', 'DONE']
@@ -69,6 +70,7 @@ export function IssueDetail({
   onUpdate,
   onAddSubtask,
   onDelete,
+  onAttachmentChange,
 }: IssueDetailProps) {
   const router = useRouter()
   const [editMode, setEditMode] = useState(false)
@@ -290,6 +292,7 @@ export function IssueDetail({
               entityType="issue"
               entityId={issue.id}
               existingAttachments={issue.attachments || []}
+              onUploadComplete={onAttachmentChange}
             />
           ) : issue.attachments?.length > 0 ? (
             <AttachmentList attachments={issue.attachments} />

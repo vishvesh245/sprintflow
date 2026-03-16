@@ -254,6 +254,7 @@ export default function IssueDetailPage() {
           onUpdate={handleUpdate}
           onAddSubtask={(title) => addSubtask(title)}
           onDelete={handleDelete}
+          onAttachmentChange={invalidateIssue}
         />
 
         <CommentThread
