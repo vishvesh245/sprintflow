@@ -24,6 +24,7 @@ export default function IssueDetailPage() {
   const [pendingUpdate, setPendingUpdate] = useState<Record<string, any> | null>(null)
   const [openSubtasks, setOpenSubtasks] = useState<any[]>([])
   const [showResolutionModal, setShowResolutionModal] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   // ── Data queries ──────────────────────────────────────────────
   // Issue detail — short staleTime (10s global default), refetch after mutations
@@ -255,16 +256,19 @@ export default function IssueDetailPage() {
           onAddSubtask={(title) => addSubtask(title)}
           onDelete={handleDelete}
           onAttachmentChange={invalidateIssue}
+          onEditModeChange={setIsEditing}
         />
 
-        <CommentThread
-          issueId={issueId}
-          comments={issue.comments || []}
-          onAddComment={handleAddComment}
-          onEditComment={handleEditComment}
-          onDeleteComment={handleDeleteComment}
-          onAttachmentChange={invalidateIssue}
-        />
+        {!isEditing && (
+          <CommentThread
+            issueId={issueId}
+            comments={issue.comments || []}
+            onAddComment={handleAddComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
+            onAttachmentChange={invalidateIssue}
+          />
+        )}
       </div>
     </>
   )

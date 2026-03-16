@@ -199,6 +199,7 @@ function SlideOverContent({
   const [pendingUpdate, setPendingUpdate] = useState<Record<string, any> | null>(null)
   const [openSubtasks, setOpenSubtasks] = useState<any[]>([])
   const [showResolutionModal, setShowResolutionModal] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   // Data queries
   const { issue, isLoading: issueLoading, error: issueError } = useIssue(issueId)
@@ -446,16 +447,19 @@ function SlideOverContent({
                 onAddSubtask={(title) => addSubtask(title)}
                 onDelete={handleDelete}
                 onAttachmentChange={invalidateIssue}
+                onEditModeChange={setIsEditing}
               />
 
-              <CommentThread
-                issueId={issueId}
-                comments={issue.comments || []}
-                onAddComment={handleAddComment}
-                onEditComment={handleEditComment}
-                onDeleteComment={handleDeleteComment}
-                onAttachmentChange={invalidateIssue}
-              />
+              {!isEditing && (
+                <CommentThread
+                  issueId={issueId}
+                  comments={issue.comments || []}
+                  onAddComment={handleAddComment}
+                  onEditComment={handleEditComment}
+                  onDeleteComment={handleDeleteComment}
+                  onAttachmentChange={invalidateIssue}
+                />
+              )}
             </div>
           </>
         )}

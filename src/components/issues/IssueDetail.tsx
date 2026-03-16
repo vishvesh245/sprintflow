@@ -39,6 +39,7 @@ interface IssueDetailProps {
   onAddSubtask?: (title: string) => Promise<void>
   onDelete?: () => Promise<void>
   onAttachmentChange?: () => void
+  onEditModeChange?: (editing: boolean) => void
 }
 
 const STATUSES = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'READY_FOR_QA', 'IN_REVIEW', 'BLOCKED', 'DONE']
@@ -71,9 +72,14 @@ export function IssueDetail({
   onAddSubtask,
   onDelete,
   onAttachmentChange,
+  onEditModeChange,
 }: IssueDetailProps) {
   const router = useRouter()
-  const [editMode, setEditMode] = useState(false)
+  const [editMode, _setEditMode] = useState(false)
+  const setEditMode = (v: boolean) => {
+    _setEditMode(v)
+    onEditModeChange?.(v)
+  }
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
