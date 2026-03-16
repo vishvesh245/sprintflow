@@ -42,6 +42,15 @@ export type IssuePriority = (typeof ISSUE_PRIORITIES)[number]
 export const ISSUE_TYPES = ['STORY', 'TASK', 'BUG', 'SUBTASK'] as const
 export type IssueType = (typeof ISSUE_TYPES)[number]
 
+// Issue link types for linked issues
+export const LINK_TYPE_DISPLAY: Record<string, string> = {
+  BLOCKS: 'blocks',
+  IS_BLOCKED_BY: 'is blocked by',
+  RELATES_TO: 'relates to',
+  DUPLICATES: 'duplicates',
+  IS_DUPLICATED_BY: 'is duplicated by',
+}
+
 // Team colors
 export const TEAM_COLORS: Record<string, string> = {
   blue: '#3B82F6',

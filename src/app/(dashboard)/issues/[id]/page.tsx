@@ -221,6 +221,7 @@ export default function IssueDetailPage() {
           issueId={issueId}
           comments={issue.comments || []}
           onAddComment={handleAddComment}
+          onAttachmentChange={invalidateIssue}
         />
       </div>
     </>

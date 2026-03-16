@@ -32,6 +32,8 @@ interface CommentThreadProps {
   onAddComment: (body: string) => Promise<{ id: string } | void>
   onEditComment?: (commentId: string, body: string) => Promise<void>
   onDeleteComment?: (commentId: string) => Promise<void>
+  /** Called after attachments are uploaded/deleted so parent can refetch */
+  onAttachmentChange?: () => void
 }
 
 /**
@@ -109,6 +111,7 @@ export function CommentThread({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onAttachmentChange,
 }: CommentThreadProps) {
   const { data: session } = useSession()
   const { upload, remove } = useAttachments()
@@ -173,6 +176,8 @@ export function CommentThread({
         if (uploadErrors > 0) {
           toast.error(`${uploadErrors} file(s) failed to upload`)
         }
+        // Trigger parent refetch so comment attachments appear immediately
+        onAttachmentChange?.()
       }
       setPendingFiles([])
     } catch {
@@ -211,6 +216,7 @@ export function CommentThread({
   const handleDeleteAttachment = async (attachmentId: string) => {
     try {
       await remove.mutateAsync(attachmentId)
+      onAttachmentChange?.()
     } catch {
       // Error toast handled by the hook
     }

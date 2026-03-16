@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createNotification } from '@/lib/utils/notifications'
 import { parseMentionedUserIds } from '@/lib/utils/mentions'
+import { invalidatePrefix } from '@/lib/cache'
 import { z } from 'zod'
 
 const createCommentSchema = z.object({
@@ -83,7 +84,8 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found' }, { status: 404 })
     }
 
-    // Create the comment
+    // Create the comment — include attachments (empty initially) so the
+    // client-side optimistic cache update has the field present
     const comment = await prisma.comment.create({
       data: {
         issueId,
@@ -99,8 +101,15 @@ export async function POST(
             image: true,
           },
         },
+        attachments: {
+          select: { id: true, filename: true, storagePath: true, contentType: true, size: true, createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     })
+
+    // Invalidate server-side issue cache so next fetch includes the new comment
+    invalidatePrefix(`issue:${issueId}`)
 
     // Create notifications for issue reporter and assignee (if different from comment author)
     const notificationUserIds = new Set<string>()

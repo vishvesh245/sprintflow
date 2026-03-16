@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getSupabaseAdmin, ATTACHMENT_BUCKET, getAttachmentUrl } from '@/lib/supabase'
 import { isAllowedMimeType, MAX_FILE_SIZE } from '@/lib/validations/attachment'
+import { invalidatePrefix } from '@/lib/cache'
 
 /**
  * POST /api/attachments — Upload a file attachment
@@ -108,6 +109,22 @@ export async function POST(request: NextRequest) {
         .remove([storagePath])
         .catch(() => {}) // best-effort cleanup
       throw dbError
+    }
+
+    // Invalidate server-side caches so subsequent fetches return fresh data
+    if (issueId) {
+      invalidatePrefix(`issue:${issueId}`)
+    } else if (designItemId) {
+      invalidatePrefix(`design-item:${designItemId}`)
+    } else if (commentId) {
+      // Comment belongs to an issue — look up and invalidate that issue's cache
+      const comment = await prisma.comment.findUnique({
+        where: { id: commentId },
+        select: { issueId: true },
+      })
+      if (comment?.issueId) {
+        invalidatePrefix(`issue:${comment.issueId}`)
+      }
     }
 
     return NextResponse.json(

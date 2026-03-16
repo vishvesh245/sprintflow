@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getSupabaseAdmin, ATTACHMENT_BUCKET } from '@/lib/supabase'
+import { invalidatePrefix } from '@/lib/cache'
 
 /**
  * DELETE /api/attachments/[id] — Delete an attachment
@@ -45,6 +46,23 @@ export async function DELETE(
     if (deleteError) {
       console.error('Supabase delete error:', deleteError)
       // Continue with DB deletion even if storage delete fails
+    }
+
+    // Invalidate server-side caches before deleting
+    if (attachment.issueId) {
+      invalidatePrefix(`issue:${attachment.issueId}`)
+    }
+    if (attachment.designItemId) {
+      invalidatePrefix(`design-item:${attachment.designItemId}`)
+    }
+    if (attachment.commentId) {
+      const comment = await prisma.comment.findUnique({
+        where: { id: attachment.commentId },
+        select: { issueId: true },
+      })
+      if (comment?.issueId) {
+        invalidatePrefix(`issue:${comment.issueId}`)
+      }
     }
 
     // Delete DB record
