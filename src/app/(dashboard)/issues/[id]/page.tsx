@@ -145,6 +145,45 @@ export default function IssueDetailPage() {
     },
   })
 
+  // Edit comment
+  const handleEditComment = async (commentId: string, body: string) => {
+    const res = await fetch(`/api/issues/${issueId}/comments/${commentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body }),
+    })
+    if (!res.ok) throw new Error('Failed to update comment')
+    const updated = await res.json()
+    queryClient.setQueryData(['issue', issueId], (prev: any) =>
+      prev
+        ? {
+            ...prev,
+            comments: (prev.comments || []).map((c: any) =>
+              c.id === commentId ? updated : c
+            ),
+          }
+        : prev
+    )
+  }
+
+  // Delete comment
+  const handleDeleteComment = async (commentId: string) => {
+    const res = await fetch(`/api/issues/${issueId}/comments/${commentId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) throw new Error('Failed to delete comment')
+    queryClient.setQueryData(['issue', issueId], (prev: any) =>
+      prev
+        ? {
+            ...prev,
+            comments: (prev.comments || []).filter(
+              (c: any) => c.id !== commentId
+            ),
+          }
+        : prev
+    )
+  }
+
   // Add comment — optimistic: append immediately, no refetch needed
   const handleAddComment = async (body: string) => {
     const res = await fetch(`/api/issues/${issueId}/comments`, {
@@ -221,6 +260,8 @@ export default function IssueDetailPage() {
           issueId={issueId}
           comments={issue.comments || []}
           onAddComment={handleAddComment}
+          onEditComment={handleEditComment}
+          onDeleteComment={handleDeleteComment}
           onAttachmentChange={invalidateIssue}
         />
       </div>
