@@ -52,3 +52,4 @@ ehthumbs.db
 *.tmp
 *.temp
 .vercel
+.claude

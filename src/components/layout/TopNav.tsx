@@ -201,12 +201,16 @@ export function TopNav() {
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors duration-200"
             >
-              {session?.user?.image && (
+              {session?.user?.image ? (
                 <img
                   src={session.user.image}
                   alt={session.user.name || 'User'}
                   className="w-8 h-8 rounded-full object-cover"
                 />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                  {(session?.user?.name || session?.user?.email || '?').charAt(0).toUpperCase()}
+                </div>
               )}
               <ChevronDown className="w-4 h-4 text-slate-600" />
             </button>

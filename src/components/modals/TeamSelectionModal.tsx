@@ -77,7 +77,7 @@ export function TeamSelectionModal({ userId }: { userId: string }) {
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-slate-900">Select Your Team</h2>
           <p className="text-slate-600 mt-2">
-            Choose a team to get started with Sprinto
+            Choose a team to get started
           </p>
         </div>
 

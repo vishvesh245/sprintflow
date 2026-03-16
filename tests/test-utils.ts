@@ -6,7 +6,7 @@ import { vi } from 'vitest'
 
 export const createMockUser = (overrides?: any) => ({
   id: 'test-user-id',
-  email: 'test@noon.com',
+  email: 'test@demo.com',
   name: 'Test User',
   ...overrides,
 })

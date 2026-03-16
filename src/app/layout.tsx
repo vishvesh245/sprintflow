@@ -7,8 +7,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sprinto',
-  description: 'Unified Sprint Management Tool',
+  title: 'SprintFlow',
+  description: 'Sprint management, simplified.',
 }
 
 export default function RootLayout({

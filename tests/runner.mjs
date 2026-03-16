@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 
 // ─── Mock Infrastructure ──────────────────────────────────────────────────────
 
-const mockSession = { user: { id: 'user-1', email: 'test@noon.com', name: 'Test User' } }
+const mockSession = { user: { id: 'user-1', email: 'test@demo.com', name: 'Test User' } }
 
 let authReturn = mockSession  // flip to null to simulate unauthenticated
 
@@ -64,14 +64,14 @@ const mockPrisma = {
     },
   },
   epic: {
-    _data: [{ id: 'epic-1', title: 'Auth Epic', description: null, status: 'ACTIVE', targetSprintId: null, createdById: 'user-1', createdAt: new Date(), updatedAt: new Date(), issues: [], createdBy: { id: 'user-1', name: 'Test User', email: 'test@noon.com' } }],
+    _data: [{ id: 'epic-1', title: 'Auth Epic', description: null, status: 'ACTIVE', targetSprintId: null, createdById: 'user-1', createdAt: new Date(), updatedAt: new Date(), issues: [], createdBy: { id: 'user-1', name: 'Test User', email: 'test@demo.com' } }],
     findMany: async (opts) => {
       let items = [...mockPrisma.epic._data]
       if (opts?.where?.status) items = items.filter(e => e.status === opts.where.status)
       return items
     },
     findUnique: async ({ where }) => mockPrisma.epic._data.find(e => e.id === where.id) ?? null,
-    create: async ({ data }) => ({ id: 'epic-new', ...data, createdAt: new Date(), updatedAt: new Date(), issues: [], createdBy: { id: data.createdById, name: 'Test User', email: 'test@noon.com' } }),
+    create: async ({ data }) => ({ id: 'epic-new', ...data, createdAt: new Date(), updatedAt: new Date(), issues: [], createdBy: { id: data.createdById, name: 'Test User', email: 'test@demo.com' } }),
     update: async ({ where, data }) => {
       const e = mockPrisma.epic._data.find(e => e.id === where.id)
       return e ? { ...e, ...data } : null

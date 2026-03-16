@@ -68,7 +68,7 @@ async function createSessionCookie(payload = {}) {
   )
 
   const base = {
-    email: 'vpandya@noon.com',
+    email: 'test@demo.com',
     name: 'Test User (Integration)',
     teamId: null,
     ...payload,
@@ -139,7 +139,7 @@ describe('SprintSync Integration Tests', { concurrency: false }, () => {
     // The JWT callback in auth.ts runs on every auth() call and does
     // prisma.user.findUnique({ where: { email } }) to resolve the real DB user id,
     // so we don't need to embed the id in the JWT ourselves.
-    sessionCookie = await createSessionCookie({ email: 'vpandya@noon.com' })
+    sessionCookie = await createSessionCookie({ email: 'test@demo.com' })
 
     console.log(`\n✅ Server up at ${BASE_URL}`)
     console.log('✅ Session cookie forged (JWT callback resolves real user id per request)\n')

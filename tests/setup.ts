@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 // Set test environment variables
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/sprintsync_test'
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/sprintflow_test'
 process.env.AUTH_SECRET = 'test-secret-key-for-testing-only'
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 ;(process.env as Record<string, string>).NODE_ENV = 'test'
@@ -12,7 +12,7 @@ vi.mock('next-auth', () => ({
     Promise.resolve({
       user: {
         id: 'test-user-id',
-        email: 'test@noon.com',
+        email: 'test@demo.com',
         name: 'Test User',
       },
     })
@@ -24,7 +24,7 @@ vi.mock('@/lib/auth', () => ({
     Promise.resolve({
       user: {
         id: 'test-user-id',
-        email: 'test@noon.com',
+        email: 'test@demo.com',
         name: 'Test User',
       },
     })
@@ -102,7 +102,7 @@ vi.mock('@/lib/prisma', () => {
       createdBy: {
         id: 'test-user-id',
         name: 'Test User',
-        email: 'test@noon.com',
+        email: 'test@demo.com',
       },
     }
 

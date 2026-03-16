@@ -15,7 +15,8 @@ import {
 } from 'lucide-react'
 import { usePrefetchPages } from '@/hooks/usePrefetchPages'
 
-const COLLAPSED_KEY = 'sprintsync-sidebar-collapsed'
+const APP_NAME = 'SprintFlow'
+const COLLAPSED_KEY = 'sprintflow-sidebar-collapsed'
 
 const baseNavigationItems = [
   {
@@ -103,7 +104,7 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-slate-900 truncate">Sprinto</span>
+              <span className="font-bold text-slate-900 truncate">{APP_NAME}</span>
               <span className="text-xs text-slate-500 truncate">Sprint Management</span>
             </div>
           )}

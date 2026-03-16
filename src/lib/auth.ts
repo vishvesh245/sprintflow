@@ -1,14 +1,26 @@
 import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
+import Credentials from "next-auth/providers/credentials"
 import { prisma } from "./prisma"
 import { authConfig } from "@/auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    Credentials({
+      name: "Email",
+      credentials: {
+        email: { label: "Email", type: "email" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email as string
+        if (!email) return null
+        return {
+          id: crypto.randomUUID(),
+          email,
+          name: email.split("@")[0],
+          teamId: null,
+        }
+      },
     }),
   ],
   session: {
@@ -22,12 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user }) {
       if (!user.email) return false
 
-      // Domain restriction: only allow @noon.com emails
-      if (!user.email.endsWith("@noon.com")) {
-        return false
-      }
-
-      // Upsert user in database manually (no PrismaAdapter needed)
+      // Upsert user in database
       try {
         await prisma.user.upsert({
           where: { email: user.email },
@@ -40,18 +47,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name ?? "",
             email: user.email,
             image: user.image,
+            role: "ADMIN",
           },
         })
       } catch (err) {
         console.error("Failed to upsert user:", err)
-        // Don't block login if DB write fails
       }
 
       return true
     },
 
     async jwt({ token, user, trigger, session }) {
-      // On first sign-in OR when email is present, fetch user from DB to get teamId + role
       if (user?.email || token?.email) {
         try {
           const dbUser = await prisma.user.findUnique({
@@ -68,7 +74,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // Allow session updates (e.g., after team selection)
       if (trigger === "update" && session?.teamId !== undefined) {
         token.teamId = session.teamId
       }

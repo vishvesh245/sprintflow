@@ -30,7 +30,7 @@ import { MorphingShapeLoader } from '@/components/ui/loaders'
 type DesignStatus = 'DRAFT' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE'
 type ViewMode = 'board' | 'list'
 
-const VIEW_PREF_KEY = 'sprintsync-design-board-view'
+const VIEW_PREF_KEY = 'sprintflow-design-board-view'
 
 const COLUMNS: Array<{ status: DesignStatus; title: string }> = [
   { status: 'DRAFT', title: 'Draft' },

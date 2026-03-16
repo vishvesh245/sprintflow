@@ -177,7 +177,7 @@ describe('Epic API', () => {
           createdBy: {
             id: 'test-user-id',
             name: 'Test User',
-            email: 'test@noon.com',
+            email: 'test@demo.com',
           },
         },
       ]
@@ -227,7 +227,7 @@ describe('Epic API', () => {
           createdBy: {
             id: 'test-user-id',
             name: 'Test User',
-            email: 'test@noon.com',
+            email: 'test@demo.com',
           },
         },
       ]
@@ -349,7 +349,7 @@ describe('Epic API', () => {
         createdBy: {
           id: 'test-user-id',
           name: 'Test User',
-          email: 'test@noon.com',
+          email: 'test@demo.com',
         },
       }
 
