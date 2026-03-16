@@ -56,7 +56,7 @@ interface SprintHistorySectionProps {
 }
 
 export default function SprintHistorySection({ planningSprints = [] }: SprintHistorySectionProps) {
-  const [showCompleted, setShowCompleted] = useState(true)
+  const [showCompleted, setShowCompleted] = useState(false)
   const [showUpcoming, setShowUpcoming] = useState(true)
 
   // Fetch completed sprints with summary mode (no issue data)
