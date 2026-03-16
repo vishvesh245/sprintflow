@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { STATUS_COLORS, getStatusHex } from '@/lib/colors'
-import { AlertCircle, User, TrendingUp, TrendingDown } from 'lucide-react'
+import { AlertCircle, User } from 'lucide-react'
 
 interface UnifiedSprintViewProps {
   sprint: Sprint
@@ -98,20 +98,7 @@ export default function UnifiedSprintView({ sprint, issues }: UnifiedSprintViewP
   const blockedCount = statusCounts['BLOCKED'] || 0
   const unassignedCount = issues.filter(i => !i.assigneeId && i.status !== 'DONE').length
 
-  // ── Pace / On Track calculation ──────────────────────────────────
-  const paceInfo = useMemo(() => {
-    if (totalIssues === 0 || daysElapsed <= 0) {
-      return { label: 'Just started', color: 'text-blue-600', bg: 'bg-blue-50/60', border: 'border-blue-100', icon: 'trend-up' as const }
-    }
-    const expectedProgress = (daysElapsed / totalDays) * 100
-    const diff = overallProgress - expectedProgress
-    const issuesPerDay = daysElapsed > 0 ? (totalDone / daysElapsed).toFixed(1) : '0'
-
-    if (diff >= -5) {
-      return { label: `On track · ${issuesPerDay}/day`, color: 'text-blue-600', bg: 'bg-blue-50/60', border: 'border-blue-100', icon: 'trend-up' as const }
-    }
-    return { label: `Behind · ${issuesPerDay}/day`, color: 'text-red-500', bg: 'bg-red-50/60', border: 'border-red-100', icon: 'trend-down' as const }
-  }, [totalIssues, totalDone, daysElapsed, totalDays, overallProgress])
+  // (Pace chip removed)
 
   // ── Helper: most notable non-done status for a team ──────────────
   function teamHighlight(teamIssues: IssueWithRelations[]) {
@@ -265,17 +252,7 @@ export default function UnifiedSprintView({ sprint, issues }: UnifiedSprintViewP
               {unassignedCount} unassigned
             </button>
           )}
-          <div className={cn(
-            'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium',
-            paceInfo.bg, paceInfo.border, paceInfo.color,
-          )}>
-            {paceInfo.icon === 'trend-up' ? (
-              <TrendingUp className="w-3 h-3" />
-            ) : (
-              <TrendingDown className="w-3 h-3" />
-            )}
-            {paceInfo.label}
-          </div>
+          {/* Pace chip removed — was showing x/day rate */}
         </div>
       )}
     </div>

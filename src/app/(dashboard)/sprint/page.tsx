@@ -11,7 +11,7 @@ const SprintCompleteModal = dynamic(() => import('@/components/sprint/SprintComp
 const SprintHistorySection = dynamic(() => import('@/components/sprint/SprintHistorySection'))
 import { Button } from '@/components/ui/button'
 import { SprintBarsLoader } from '@/components/ui/loaders'
-import { RefreshCw, CheckCircle, Plus } from 'lucide-react'
+import { RefreshCw, CheckCircle, Plus, Pencil, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function SprintPage() {
@@ -28,6 +28,10 @@ export default function SprintPage() {
   const [showPlanNextSprint, setShowPlanNextSprint] = useState(false)
   const [nextSprintForm, setNextSprintForm] = useState({ name: '', startDate: '', endDate: '' })
   const [nextSprintError, setNextSprintError] = useState<string | null>(null)
+
+  // Edit sprint state
+  const [editingSprint, setEditingSprint] = useState(false)
+  const [editSprintForm, setEditSprintForm] = useState({ name: '', startDate: '', endDate: '' })
 
   // ── Data queries (single combined fetch) ─────────────────────
   const {
@@ -104,6 +108,40 @@ export default function SprintPage() {
     },
     onError: (err) => setNextSprintError(err instanceof Error ? err.message : 'Failed to create sprint'),
   })
+
+  const [editSprintId, setEditSprintId] = useState<string | null>(null)
+  const { mutate: updateSprint, isPending: updatingSprint } = useMutation({
+    mutationFn: async (data: { name: string; startDate: string; endDate: string }) => {
+      const targetId = editSprintId || sprint?.id
+      if (!targetId) throw new Error('No sprint to update')
+      const res = await fetch(`/api/sprints/${targetId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to update sprint')
+      return json
+    },
+    onSuccess: () => {
+      setEditingSprint(false)
+      invalidateAll()
+      toast.success('Sprint updated')
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update sprint'),
+  })
+
+  const handleEnterEditSprint = (s?: Sprint | null) => {
+    const target = s || sprint
+    if (!target) return
+    setEditSprintId(target.id)
+    setEditSprintForm({
+      name: target.name,
+      startDate: new Date(target.startDate).toISOString().split('T')[0],
+      endDate: new Date(target.endDate).toISOString().split('T')[0],
+    })
+    setEditingSprint(true)
+  }
 
   // Open complete sprint modal — planning sprints already in cache from useSprints('PLANNING')
   const handleOpenCompleteModal = () => setShowCompleteModal(true)
@@ -222,15 +260,70 @@ export default function SprintPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="w-full max-w-lg mx-auto pt-16 pb-8 px-4">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 space-y-6">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h2 className="text-2xl font-bold text-gray-900">{planningSprint.name}</h2>
-                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">PLANNING</span>
+            {editingSprint ? (
+              <form
+                onSubmit={(e) => { e.preventDefault(); updateSprint(editSprintForm) }}
+                className="space-y-3"
+              >
+                <input
+                  type="text"
+                  value={editSprintForm.name}
+                  onChange={(e) => setEditSprintForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full rounded border border-blue-300 px-3 py-2 text-2xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={editSprintForm.startDate}
+                    onChange={(e) => setEditSprintForm(f => ({ ...f, startDate: e.target.value }))}
+                    className="rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-400">–</span>
+                  <input
+                    type="date"
+                    value={editSprintForm.endDate}
+                    onChange={(e) => setEditSprintForm(f => ({ ...f, endDate: e.target.value }))}
+                    className="rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingSprint(false)}
+                    disabled={updatingSprint}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={updatingSprint || !editSprintForm.name.trim()}
+                  >
+                    {updatingSprint ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="group">
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-2xl font-bold text-gray-900">{planningSprint.name}</h2>
+                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">PLANNING</span>
+                  <button
+                    onClick={() => handleEnterEditSprint(planningSprint)}
+                    className="rounded-md p-1 text-gray-300 opacity-0 group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 transition-all"
+                    title="Edit sprint"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600">
+                  {new Date(planningSprint.startDate).toLocaleDateString()} – {new Date(planningSprint.endDate).toLocaleDateString()}
+                </p>
               </div>
-              <p className="text-sm text-gray-600">
-                {new Date(planningSprint.startDate).toLocaleDateString()} – {new Date(planningSprint.endDate).toLocaleDateString()}
-              </p>
-            </div>
+            )}
 
             <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
               This sprint is in planning. Go to the <strong>Backlog</strong> to assign issues to this sprint, then start it when ready.
@@ -305,17 +398,77 @@ export default function SprintPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div>
-                <p className="text-lg font-semibold text-gray-900">{sprint!.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <p className="text-sm text-gray-500">
-                    {new Date(sprint!.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(sprint!.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
-                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                    {Math.max(0, Math.ceil((new Date(sprint!.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))}d left
-                  </span>
+              {editingSprint ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); updateSprint(editSprintForm) }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      value={editSprintForm.name}
+                      onChange={(e) => setEditSprintForm(f => ({ ...f, name: e.target.value }))}
+                      className="rounded border border-blue-300 px-2 py-1 text-lg font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={editSprintForm.startDate}
+                        onChange={(e) => setEditSprintForm(f => ({ ...f, startDate: e.target.value }))}
+                        className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-400">–</span>
+                      <input
+                        type="date"
+                        value={editSprintForm.endDate}
+                        onChange={(e) => setEditSprintForm(f => ({ ...f, endDate: e.target.value }))}
+                        className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="submit"
+                      disabled={updatingSprint || !editSprintForm.name.trim()}
+                      className="rounded-md bg-blue-600 p-1.5 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      title="Save"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingSprint(false)}
+                      disabled={updatingSprint}
+                      className="rounded-md border border-gray-300 p-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                      title="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="group flex items-center gap-2">
+                  <div>
+                    <p className="text-lg font-semibold text-gray-900">{sprint!.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-sm text-gray-500">
+                        {new Date(sprint!.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(sprint!.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {Math.max(0, Math.ceil((new Date(sprint!.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))}d left
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleEnterEditSprint()}
+                    className="rounded-md p-1.5 text-gray-300 opacity-0 group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 transition-all"
+                    title="Edit sprint name & dates"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button
