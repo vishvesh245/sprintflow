@@ -55,8 +55,13 @@ export function TeamSelectionModal({ userId }: { userId: string }) {
         // Update the JWT session so teamId is immediately available
         await updateSession({ teamId: selectedTeam })
         router.refresh()
+      } else {
+        const data = await response.json().catch(() => ({}))
+        console.error('Team assign failed:', response.status, data)
+        toast.error(data.error || `Failed to assign team (${response.status})`)
       }
     } catch (error) {
+      console.error('Team assign error:', error)
       toast.error('Failed to assign team')
     } finally {
       setAssigning(false)

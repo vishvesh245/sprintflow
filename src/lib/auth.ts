@@ -50,8 +50,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: "ADMIN",
           },
         })
-      } catch (err) {
-        console.error("Failed to upsert user:", err)
+      } catch (err: any) {
+        console.error("Failed to upsert user:", err?.message || err)
+        // In demo mode, don't block login if DB write fails
+        // The jwt callback will still try to look up the user
       }
 
       return true

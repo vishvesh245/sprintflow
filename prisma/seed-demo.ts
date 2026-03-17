@@ -11,6 +11,7 @@ async function main() {
     { name: "Backend", prefix: "BE", color: "#10B981" },
     { name: "QA", prefix: "QA", color: "#8B5CF6" },
     { name: "Design", prefix: "DS", color: "#EC4899" },
+    { name: "Product & Business", prefix: "PB", color: "#F59E0B" },
   ]
 
   const createdTeams: Record<string, any> = {}
